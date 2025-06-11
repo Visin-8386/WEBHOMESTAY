@@ -1,0 +1,208 @@
+@using WebHSPromotionType = WebHS.Models.PromotionType
+@model WebHS.ViewModels.PromotionListViewModel
+
+@{
+    ViewData["Title"] = "Quản Lý Khuyến Mãi";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quản Lý Khuyến Mãi</h3>
+                    <div class="card-tools">
+                        <div class="btn-group mr-2">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                Trạng thái: @(ViewBag.Status ?? "Tất cả")
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="?status=">Tất cả</a>
+                                <a class="dropdown-item" href="?status=active">Đang hoạt động</a>
+                                <a class="dropdown-item" href="?status=upcoming">Sắp diễn ra</a>
+                                <a class="dropdown-item" href="?status=expired">Đã hết hạn</a>
+                                <a class="dropdown-item" href="?status=inactive">Tạm ngưng</a>
+                            </div>
+                        </div>
+                        <a href="@Url.Action("Create")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Tạo Khuyến Mãi
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên khuyến mãi</th>
+                                <th>Loại</th>
+                                <th>Giá trị</th>
+                                <th>Thời gian</th>
+                                <th>Sử dụng</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var promotion in Model.Promotions)
+                            {
+                                <tr>
+                                    <td><strong>@promotion.Code</strong></td>
+                                    <td>
+                                        <strong>@promotion.Name</strong>
+                                        @if(!string.IsNullOrEmpty(promotion.Description))
+                                        {
+                                            <br><small class="text-muted">@promotion.Description</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge @(promotion.Type == WebHSPromotionType.Percentage ? "badge-info" : "badge-success")">
+                                            @promotion.TypeText
+                                        </span>
+                                    </td>
+                                        <td>
+                                            <strong>
+                                                @if(promotion.Type == WebHSPromotionType.Percentage)
+                                                {
+                                                    @($"{promotion.Value:0.##}%")
+                                                }
+                                                else
+                                                {
+                                                    @promotion.Value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))
+                                                }
+                                            </strong>
+                                        @if(promotion.MinOrderAmount.HasValue)
+                                        {
+                                            <br><small class="text-muted">Tối thiểu: @promotion.MinOrderAmount.Value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</small>
+                                        }
+                                        @if(promotion.MaxDiscountAmount.HasValue)
+                                        {
+                                            <br><small class="text-muted">Tối đa: @promotion.MaxDiscountAmount.Value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small>
+                                            <strong>Từ:</strong> @promotion.StartDate.ToString("dd/MM/yyyy")<br>
+                                            <strong>Đến:</strong> @promotion.EndDate.ToString("dd/MM/yyyy")
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <strong>@promotion.UsedCount</strong>
+                                        @if(promotion.UsageLimit.HasValue)
+                                        {
+                                            <span>/@promotion.UsageLimit.Value</span>
+                                        }
+                                        else
+                                        {
+                                            <span>/∞</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var statusClass = promotion.StatusText switch
+                                            {
+                                                "Đang hoạt động" => "badge-success",
+                                                "Sắp diễn ra" => "badge-info",
+                                                "Đã hết hạn" => "badge-secondary",
+                                                "Đã hết lượt" => "badge-warning",
+                                                "Tạm ngưng" => "badge-danger",
+                                                _ => "badge-light"
+                                            };
+                                        }
+                                        <span class="badge @statusClass">@promotion.StatusText</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="@Url.Action("Edit", new { id = promotion.Id })" class="btn btn-info btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            <button type="button" class="btn @(promotion.IsActive ? "btn-warning" : "btn-success") btn-sm" 
+                                                    onclick="toggleStatus(@promotion.Id, @promotion.IsActive.ToString().ToLower())">
+                                                <i class="fas @(promotion.IsActive ? "fa-pause" : "fa-play")"></i>
+                                            </button>
+                                            
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="deletePromotion(@promotion.Id)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if(Model.TotalPages > 1)
+                {
+                    <div class="card-footer clearfix">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="dataTables_info">
+                                    Hiển thị @((Model.CurrentPage - 1) * 20 + 1) đến @(Math.Min(Model.CurrentPage * 20, Model.TotalCount)) 
+                                    trong tổng số @Model.TotalCount khuyến mãi
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <ul class="pagination pagination-sm m-0 float-right">
+                                    @if(Model.CurrentPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=@(Model.CurrentPage - 1)&status=@ViewBag.Status">«</a>
+                                        </li>
+                                    }
+
+                                    @for(int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                                    {
+                                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                            <a class="page-link" href="?page=@i&status=@ViewBag.Status">@i</a>
+                                        </li>
+                                    }
+
+                                    @if(Model.CurrentPage < Model.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=@(Model.CurrentPage + 1)&status=@ViewBag.Status">»</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleStatus(id, isActive) {
+            var action = isActive ? 'tạm ngưng' : 'kích hoạt';
+            if (confirm(`Bạn có chắc chắn muốn ${action} khuyến mãi này?`)) {
+                $.post('@Url.Action("ToggleStatus")', { id: id }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function deletePromotion(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa khuyến mãi này? Hành động này không thể hoàn tác.')) {
+                $.post('@Url.Action("Delete")', { id: id }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+}
+
+

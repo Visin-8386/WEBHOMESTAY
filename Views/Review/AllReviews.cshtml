@@ -1,0 +1,515 @@
+@model WebHS.ViewModels.ReviewListViewModel
+@{
+    ViewData["Title"] = "Tất Cả Đánh Giá";
+    Layout = "~/Views/Shared/_Layout_New.cshtml";
+}
+
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-5 mb-0">
+                        <i class="fas fa-star text-warning me-2"></i>Tất Cả Đánh Giá
+                    </h1>
+                    <p class="text-muted">Khám phá trải nghiệm của khách hàng tại các homestay</p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary fs-6">
+                        <i class="fas fa-comments me-1"></i>@Model.TotalCount đánh giá
+                    </span>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">
+                                <i class="fas fa-search me-1"></i>Tìm kiếm
+                            </label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="@Model.SearchTerm" placeholder="Tên homestay, bình luận, khách hàng...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="rating" class="form-label">
+                                <i class="fas fa-star me-1"></i>Đánh giá
+                            </label>
+                            <select class="form-select" id="rating" name="rating">
+                                @if (Model.FilterRating == null)
+                                {
+                                    <option value="" selected>Tất cả</option>
+                                }
+                                else
+                                {
+                                    <option value="">Tất cả</option>
+                                }
+                                
+                                @if (Model.FilterRating == 5)
+                                {
+                                    <option value="5" selected>5 ⭐</option>
+                                }
+                                else
+                                {
+                                    <option value="5">5 ⭐</option>
+                                }
+                                
+                                @if (Model.FilterRating == 4)
+                                {
+                                    <option value="4" selected>4 ⭐</option>
+                                }
+                                else
+                                {
+                                    <option value="4">4 ⭐</option>
+                                }
+                                
+                                @if (Model.FilterRating == 3)
+                                {
+                                    <option value="3" selected>3 ⭐</option>
+                                }
+                                else
+                                {
+                                    <option value="3">3 ⭐</option>
+                                }
+                                
+                                @if (Model.FilterRating == 2)
+                                {
+                                    <option value="2" selected>2 ⭐</option>
+                                }
+                                else
+                                {
+                                    <option value="2">2 ⭐</option>
+                                }
+                                
+                                @if (Model.FilterRating == 1)
+                                {
+                                    <option value="1" selected>1 ⭐</option>
+                                }
+                                else
+                                {
+                                    <option value="1">1 ⭐</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sortBy" class="form-label">
+                                <i class="fas fa-sort me-1"></i>Sắp xếp
+                            </label>
+                            <select class="form-select" id="sortBy" name="sortBy">
+                                @if (Model.SortBy == "newest")
+                                {
+                                    <option value="newest" selected>Mới nhất</option>
+                                }
+                                else
+                                {
+                                    <option value="newest">Mới nhất</option>
+                                }
+                                
+                                @if (Model.SortBy == "oldest")
+                                {
+                                    <option value="oldest" selected>Cũ nhất</option>
+                                }
+                                else
+                                {
+                                    <option value="oldest">Cũ nhất</option>
+                                }
+                                
+                                @if (Model.SortBy == "highest")
+                                {
+                                    <option value="highest" selected>Đánh giá cao nhất</option>
+                                }
+                                else
+                                {
+                                    <option value="highest">Đánh giá cao nhất</option>
+                                }
+                                
+                                @if (Model.SortBy == "lowest")
+                                {
+                                    <option value="lowest" selected>Đánh giá thấp nhất</option>
+                                }
+                                else
+                                {
+                                    <option value="lowest">Đánh giá thấp nhất</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-1"></i>Lọc
+                            </button>
+                            <a href="@Url.Action("AllReviews")" class="btn btn-outline-secondary">
+                                <i class="fas fa-refresh me-1"></i>Đặt lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Reviews Grid -->
+            @if (Model.Reviews.Any())
+            {
+                <div class="row">
+                    @foreach (var review in Model.Reviews)
+                    {
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card review-card h-100 shadow-sm border-0">
+                                <!-- Homestay Image -->
+                                <div class="position-relative">
+                                    <img src="@review.HomestayImage" 
+                                         alt="@review.HomestayName" 
+                                         class="card-img-top review-image">
+                                    @if (review.IsRecentReview)
+                                    {
+                                        <span class="badge bg-success position-absolute top-0 start-0 m-2">
+                                            <i class="fas fa-clock me-1"></i>Mới
+                                        </span>
+                                    }
+                                    <div class="rating-overlay position-absolute top-0 end-0 m-2">
+                                        <span class="badge bg-warning text-dark fs-6">
+                                            @review.Rating <i class="fas fa-star"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="card-body d-flex flex-column">
+                                    <!-- Homestay Info -->
+                                    <div class="mb-3">
+                                        <h5 class="card-title mb-1">
+                                            <a href="@Url.Action("Details", "Homestay", new { id = review.HomestayId })" 
+                                               class="text-decoration-none">
+                                                @review.HomestayName
+                                            </a>
+                                        </h5>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>@review.HomestayLocation
+                                        </small>
+                                    </div>
+
+                                    <!-- Rating Stars -->
+                                    <div class="mb-2">
+                                        <span class="rating-stars">@review.RatingStars</span>
+                                    </div>
+
+                                    <!-- Review Comment -->
+                                    <div class="review-comment mb-3 flex-grow-1">
+                                        @if (!string.IsNullOrEmpty(review.Comment))
+                                        {
+                                            <p class="text-muted mb-0">
+                                                "@review.Comment"
+                                            </p>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-muted fst-italic mb-0">
+                                                Khách hàng không để lại bình luận
+                                            </p>
+                                        }
+                                    </div>
+
+                                    <!-- User Info -->
+                                    <div class="d-flex align-items-center justify-content-between mt-auto">
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-2">
+                                                <span class="badge bg-secondary rounded-circle p-2">
+                                                    @review.UserInitials
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <small class="fw-bold">@review.UserName</small><br>
+                                                <small class="text-muted">@review.FormattedCreatedAt</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                @review.CheckInDate.ToString("dd/MM/yyyy")
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Reviews pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("AllReviews", new { 
+                                        page = Model.CurrentPage - 1, 
+                                        search = Model.SearchTerm,
+                                        rating = Model.FilterRating,
+                                        sortBy = Model.SortBy 
+                                    })">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("AllReviews", new { 
+                                        page = i, 
+                                        search = Model.SearchTerm,
+                                        rating = Model.FilterRating,
+                                        sortBy = Model.SortBy 
+                                    })">@i</a>
+                                </li>
+                            }
+
+                            @if (Model.CurrentPage < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("AllReviews", new { 
+                                        page = Model.CurrentPage + 1, 
+                                        search = Model.SearchTerm,
+                                        rating = Model.FilterRating,
+                                        sortBy = Model.SortBy 
+                                    })">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+
+                    <div class="text-center mt-2">
+                        <small class="text-muted">
+                            Hiển thị trang @Model.CurrentPage / @Model.TotalPages 
+                            (@Model.TotalCount đánh giá)
+                        </small>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- No Reviews Found -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-search fa-4x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted">Không tìm thấy đánh giá nào</h4>
+                    <p class="text-muted">
+                        @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.FilterRating.HasValue)
+                        {
+                            <span>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</span>
+                        }
+                        else
+                        {
+                            <span>Chưa có đánh giá nào được thêm vào hệ thống.</span>
+                        }
+                    </p>
+                    <a href="@Url.Action("AllReviews")" class="btn btn-primary">
+                        <i class="fas fa-refresh me-1"></i>Xem tất cả đánh giá
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .review-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+        }
+        
+        .review-image {
+            height: 200px;
+            object-fit: cover;
+            width: 100%;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+        
+        .rating-overlay {
+            backdrop-filter: blur(4px);
+            border-radius: 15px;
+        }
+        
+        .rating-overlay .badge {
+            background-color: rgba(255, 193, 7, 0.95) !important;
+            color: #000 !important;
+            font-weight: bold;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .review-comment {
+            font-size: 0.95em;
+            line-height: 1.4;
+            max-height: 4.2em;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .user-avatar .badge {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            background-color: #6c757d !important;
+            color: #fff !important;
+        }
+        
+        .badge.bg-success {
+            background-color: #198754 !important;
+            color: #fff !important;
+        }
+        
+        .badge.bg-primary {
+            background-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        
+        .card-title a {
+            color: inherit;
+        }
+        
+        .card-title a:hover {
+            color: #0d6efd;
+        }
+        
+        .text-muted {
+            color: #6c757d !important;
+        }
+        
+        .fw-bold {
+            font-weight: 600 !important;
+            color: #212529 !important;
+        }
+        
+        .small, small {
+            color: #6c757d !important;
+        }
+        
+        .btn {
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: #fff;
+        }
+        
+        .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #fff;
+        }
+        
+        .page-link {
+            color: #0d6efd;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+        }
+        
+        .page-link:hover {
+            color: #0a58ca;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+        
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: #fff;
+        }
+        
+        .filter-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+        }
+        
+        .form-label {
+            color: #212529 !important;
+            font-weight: 500;
+        }
+        
+        .form-control, .form-select {
+            border: 1px solid #ced4da;
+            color: #212529 !important;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        @@media (max-width: 768px) {
+            .review-image {
+                height: 150px;
+            }
+            
+            .display-5 {
+                font-size: 1.5rem;
+            }
+            
+            .badge {
+                font-size: 0.75rem !important;
+            }
+            
+            .user-avatar .badge {
+                width: 35px !important;
+                height: 35px !important;
+                font-size: 0.7em !important;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Auto-submit form when filter changes
+        document.getElementById('sortBy').addEventListener('change', function() {
+            this.form.submit();
+        });
+        
+        document.getElementById('rating').addEventListener('change', function() {
+            this.form.submit();
+        });
+
+        // Add loading animation when filtering
+        const form = document.querySelector('form');
+        const submitBtn = document.querySelector('button[type="submit"]');
+        
+        form.addEventListener('submit', function() {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang lọc...';
+            submitBtn.disabled = true;
+        });
+    </script>
+}

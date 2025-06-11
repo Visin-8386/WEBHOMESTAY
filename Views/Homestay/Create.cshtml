@@ -1,0 +1,1695 @@
+@using WebHSPromotionType = WebHS.Models.PromotionType
+@model WebHS.ViewModels.CreateHomestayViewModel
+
+@{
+    ViewData["Title"] = "Tạo Homestay";
+    Layout = "~/Views/Shared/_Layout_New.cshtml";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Tạo Homestay Mới</h4>
+                    <p class="text-muted mb-0">Vui lòng điền đầy đủ thông tin để tạo homestay của bạn</p>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="homestayForm">
+                        <!-- Basic Information -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Thông tin cơ bản</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label asp-for="Name" class="form-label">Tên homestay *</label>
+                                        <input asp-for="Name" class="form-control" placeholder="Nhập tên homestay">
+                                        <span asp-validation-for="Name" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="PricePerNight" class="form-label">Giá mỗi đêm (VNĐ) *</label>
+                                        <input asp-for="PricePerNight" type="number" class="form-control" placeholder="0" min="0" step="1000">
+                                        <span asp-validation-for="PricePerNight" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Description" class="form-label">Mô tả *</label>
+                                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về homestay của bạn"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Location Information -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Thông tin địa điểm</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Số nhà *</label>
+                                        <input type="text" id="houseNumber" class="form-control" 
+                                               placeholder="123, 45A, 67/8..." 
+                                               title="Nhập số nhà, có thể bao gồm chữ cái và dấu gạch chéo (VD: 123A, 45/7)">
+                                        <small class="form-text text-muted">VD: 123, 45A, 67/8, 12B</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label asp-for="Address" class="form-label">Tên đường *</label>
+                                        <input asp-for="Address" class="form-control" 
+                                               placeholder="Tên đường, phố"
+                                               title="Nhập tên đường, phố (VD: Nguyễn Huệ, Lê Lợi)">
+                                        <span asp-validation-for="Address" class="text-danger"></span>
+                                        <small class="form-text text-muted">Chỉ nhập tên đường, không bao gồm số nhà</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Country" class="form-label">Quốc gia *</label>
+                                        <input asp-for="Country" class="form-control" value="Vietnam" readonly>
+                                        <span asp-validation-for="Country" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="City" class="form-label">Tỉnh/Thành phố *</label>
+                                        <select id="provinceSelect" class="form-control">
+                                            <option value="">-- Chọn tỉnh/thành phố --</option>
+                                        </select>
+                                        <input asp-for="City" type="hidden" id="provinceName" />
+                                        <span asp-validation-for="City" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="District" class="form-label">Quận/Huyện *</label>
+                                        <select id="districtSelect" class="form-control" disabled>
+                                            <option value="">-- Chọn quận/huyện --</option>
+                                        </select>
+                                        <input asp-for="District" type="hidden" id="districtName" />
+                                        <span asp-validation-for="District" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Ward" class="form-label">Phường/Xã *</label>
+                                        <select id="wardSelect" class="form-control" disabled>
+                                            <option value="">-- Chọn phường/xã --</option>
+                                        </select>
+                                        <input asp-for="Ward" type="hidden" id="wardName" />
+                                        <span asp-validation-for="Ward" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="ZipCode" class="form-label">Mã bưu điện *</label>
+                                        <input asp-for="ZipCode" class="form-control" placeholder="Mã bưu điện">
+                                        <span asp-validation-for="ZipCode" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="State" class="form-label">Khu vực</label>
+                                        <input asp-for="State" class="form-control" readonly placeholder="Tự động xác định">
+                                        <span asp-validation-for="State" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Latitude" class="form-label">Vĩ độ</label>
+                                        <input asp-for="Latitude" type="number" class="form-control" placeholder="0" step="any" readonly>
+                                        <span asp-validation-for="Latitude" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Longitude" class="form-label">Kinh độ</label>
+                                        <input asp-for="Longitude" type="number" class="form-control" placeholder="0" step="any" readonly>
+                                        <span asp-validation-for="Longitude" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Map Container -->
+                            <div class="form-group">
+                                <label class="form-label">📍 Chọn vị trí trên bản đồ</label>
+                                
+                                <!-- Enhanced Map Controls -->
+                                <div class="map-controls mb-3">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="input-group">
+                                                <input type="text" id="fullAddressSearch" class="form-control" 
+                                                       placeholder="Nhập địa chỉ đầy đủ để tìm kiếm...">
+                                                <button type="button" id="geocodeBtn" class="btn btn-primary">
+                                                    🔍 Tìm trên bản đồ
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="btn-group w-100" role="group">
+                                                <button type="button" id="currentLocationBtn" class="btn btn-outline-success">
+                                                    📱 Vị trí hiện tại
+                                                </button>
+                                                <button type="button" id="resetMapBtn" class="btn btn-outline-secondary">
+                                                    🔄 Đặt lại
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Address Display -->
+                                <div id="addressDisplay" class="alert alert-info" style="display: none;">
+                                    <i class="fas fa-map-marker-alt"></i> <span id="displayText"></span>
+                                </div>
+                                
+                                <div class="map-container">
+                                    <div id="map"></div>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <small class="form-text text-muted">
+                                        💡 <strong>Cách sử dụng:</strong><br>
+                                        • <strong>Nhập địa chỉ:</strong> Gõ địa chỉ đầy đủ và nhấn "Tìm trên bản đồ"<br>
+                                        • <strong>Click bản đồ:</strong> Click vào vị trí muốn đặt homestay<br>
+                                        • <strong>Vị trí hiện tại:</strong> Nhấn "Vị trí hiện tại" để dùng GPS<br>
+                                        • <strong>Kéo marker:</strong> Kéo thả để điều chỉnh vị trí chính xác
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Details -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Chi tiết phòng</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="MaxGuests" class="form-label">Số khách tối đa *</label>
+                                        <input asp-for="MaxGuests" type="number" class="form-control" placeholder="1" min="1" max="50">
+                                        <span asp-validation-for="MaxGuests" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="Bedrooms" class="form-label">Số phòng ngủ *</label>
+                                        <input asp-for="Bedrooms" type="number" class="form-control" placeholder="1" min="1" max="20">
+                                        <span asp-validation-for="Bedrooms" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="Bathrooms" class="form-label">Số phòng tắm *</label>
+                                        <input asp-for="Bathrooms" type="number" class="form-control" placeholder="1" min="1" max="20">
+                                        <span asp-validation-for="Bathrooms" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Amenities -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Tiện nghi</h5>
+                            
+                            @if (ViewBag.Amenities != null)
+                            {
+                                <div class="row">
+                                    @foreach (var amenity in (List<WebHS.Models.Amenity>)ViewBag.Amenities)
+                                    {
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="AmenityIds" value="@amenity.Id" id="amenity_@amenity.Id">
+                                                <label class="form-check-label" for="amenity_@amenity.Id">
+                                                    @if (!string.IsNullOrEmpty(amenity.Icon))
+                                                    {
+                                                        <i class="@amenity.Icon me-2"></i>
+                                                    }
+                                                    @amenity.Name
+                                                </label>
+                                                @if (!string.IsNullOrEmpty(amenity.Description))
+                                                {
+                                                    <small class="text-muted d-block">@amenity.Description</small>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Images -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Hình ảnh</h5>
+                            
+                            <div class="form-group">
+                                <label asp-for="Images" class="form-label">Chọn hình ảnh *</label>
+                                <input asp-for="Images" type="file" class="form-control" multiple accept="image/*">
+                                <span asp-validation-for="Images" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Chọn nhiều hình ảnh để showcase homestay của bạn. Hình đầu tiên sẽ được đặt làm hình chính.
+                                </small>
+                            </div>
+
+                            <!-- Image Preview Area -->
+                            <div id="imagePreview" class="row mt-3" style="display: none;">
+                                <div class="col-12">
+                                    <h6>Xem trước hình ảnh:</h6>
+                                    <div id="previewContainer" class="d-flex flex-wrap gap-2"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-save"></i> Tạo Homestay
+                            </button>
+                            <a href="@Url.Action("Dashboard", "Host")" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Note: Initialize address form after all functions are defined
+            // initializeAddressForm(); // Moved to bottom of script
+            
+            // Cascading dropdown functionality is now handled by initializeAddressForm()
+            // ...existing code...            // Note: Old event handlers commented out - using new addressService handlers instead
+            /*
+            $('#countrySelect').on('change', function() {
+                var countryId = $(this).val();
+                var countryText = $(this).find('option:selected').text();
+                $('#countryName').val(countryText);
+                
+                // Clear and disable dependent dropdowns
+                clearAndDisableSelect('#provinceSelect', '-- Chọn tỉnh/thành phố --');
+                clearAndDisableSelect('#districtSelect', '-- Chọn quận/huyện --');
+                clearAndDisableSelect('#wardSelect', '-- Chọn phường/xã --');
+                
+                if (countryId) {
+                    loadProvinces(countryId);
+                }
+            });
+            
+            $('#provinceSelect').on('change', function() {
+                var provinceId = $(this).val();
+                var provinceText = $(this).find('option:selected').text();
+                $('#provinceName').val(provinceText);
+                $('#stateName').val(getRegionFromProvince(provinceText));
+                
+                // Clear and disable dependent dropdowns
+                clearAndDisableSelect('#districtSelect', '-- Chọn quận/huyện --');
+                clearAndDisableSelect('#wardSelect', '-- Chọn phường/xã --');
+                
+                if (provinceId) {
+                    loadDistricts(provinceId);
+                }
+            });
+
+            $('#districtSelect').on('change', function() {
+                var districtId = $(this).val();
+                var districtText = $(this).find('option:selected').text();
+                $('#districtName').val(districtText);
+                
+                // Clear and disable dependent dropdown
+                clearAndDisableSelect('#wardSelect', '-- Chọn phường/xã --');
+                
+                if (districtId) {
+                    loadWards(districtId);
+                }
+            });
+
+            $('#wardSelect').on('change', function() {
+                var wardText = $(this).find('option:selected').text();
+                $('#wardName').val(wardText);
+            });
+            */
+            
+            // Functions for loading data - OLD VERSION (commented out)
+            /*
+            function loadCountries() {
+                $.get('/api/address/countries')
+                    .done(function(data) {
+                        var select = $('#countrySelect');
+                        select.empty().append('<option value="">-- Chọn quốc gia --</option>');
+                        
+                        $.each(data, function(index, country) {
+                            var option = $('<option></option>')
+                                .attr('value', country.id)
+                                .text(country.name);
+                            select.append(option);
+                        });
+                        
+                        // Auto-select Vietnam if available
+                        var vietnamOption = select.find('option:contains("Vietnam")');
+                        if (vietnamOption.length > 0) {
+                            vietnamOption.prop('selected', true);
+                            $('#countrySelect').trigger('change');
+                        }
+                    })
+                    .fail(function() {
+                        console.error('Failed to load countries');
+                    });
+            }
+            */
+            
+            /* OLD API FUNCTIONS - COMMENTED OUT (now using Vietnamese external API)
+            function loadProvinces(countryId) {
+                $('#provinceSelect').prop('disabled', true);
+                
+                $.get('/api/address/provinces/' + countryId)
+                    .done(function(data) {
+                        var select = $('#provinceSelect');
+                        select.empty().append('<option value="">-- Chọn tỉnh/thành phố --</option>');
+                        
+                        $.each(data, function(index, province) {
+                            var option = $('<option></option>')
+                                .attr('value', province.id)
+                                .text(province.name);
+                            select.append(option);
+                        });
+                        
+                        select.prop('disabled', false);
+                    })
+                    .fail(function() {
+                        console.error('Failed to load provinces');
+                        $('#provinceSelect').prop('disabled', false);
+                    });
+            }
+            
+            function loadDistricts(provinceId) {
+                $('#districtSelect').prop('disabled', true);
+                
+                $.get('/api/address/districts/' + provinceId)
+                    .done(function(data) {
+                        var select = $('#districtSelect');
+                        select.empty().append('<option value="">-- Chọn quận/huyện --</option>');
+                        
+                        $.each(data, function(index, district) {
+                            var option = $('<option></option>')
+                                .attr('value', district.id)
+                                .text(district.name);
+                            select.append(option);
+                        });
+                        
+                        select.prop('disabled', false);
+                    })
+                    .fail(function() {
+                        console.error('Failed to load districts');
+                        $('#districtSelect').prop('disabled', false);
+                    });
+            }
+            
+            function loadWards(districtId) {
+                $('#wardSelect').prop('disabled', true);
+                
+                $.get('/api/address/wards/' + districtId)
+                    .done(function(data) {
+                        var select = $('#wardSelect');
+                        select.empty().append('<option value="">-- Chọn phường/xã --</option>');
+                        
+                        $.each(data, function(index, ward) {
+                            var option = $('<option></option>')
+                                .attr('value', ward.id)
+                                .text(ward.name);
+                            select.append(option);
+                        });
+                        
+                        select.prop('disabled', false);
+                    })
+                    .fail(function() {
+                        console.error('Failed to load wards');
+                        $('#wardSelect').prop('disabled', false);
+                    });
+            }
+            
+            function clearAndDisableSelect(selector, placeholder) {
+                var select = $(selector);
+                select.empty().append('<option value="">' + placeholder + '</option>');
+                select.prop('disabled', true);
+            }
+            */
+            
+            // Re-enable clearAndDisableSelect function for compatibility
+            function clearAndDisableSelect(selector, placeholder) {
+                var select = $(selector);
+                select.empty().append('<option value="">' + placeholder + '</option>');
+                select.prop('disabled', true);
+            }
+            
+            function getRegionFromProvince(provinceName) {
+                // Simple mapping of provinces to regions
+                var northProvinces = ['Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Bắc Giang', 'Bắc Ninh', 'Hải Dương', 'Hưng Yên', 'Thái Bình', 'Nam Định', 'Ninh Bình', 'Vĩnh Phúc', 'Hà Nam', 'Hòa Bình', 'Sơn La', 'Điện Biên', 'Lai Châu', 'Lào Cai', 'Yên Bái', 'Phú Thọ', 'Tuyên Quang', 'Hà Giang', 'Cao Bằng', 'Bắc Kạn', 'Lạng Sơn', 'Thái Nguyên'];
+                var centralProvinces = ['Thanh Hóa', 'Nghệ An', 'Hà Tĩnh', 'Quảng Bình', 'Quảng Trị', 'Thừa Thiên Huế', 'Đà Nẵng', 'Quảng Nam', 'Quảng Ngãi', 'Bình Định', 'Phú Yên', 'Khánh Hòa', 'Ninh Thuận', 'Bình Thuận', 'Kon Tum', 'Gia Lai', 'Đắk Lắk', 'Đắk Nông', 'Lâm Đồng'];
+                
+                if (northProvinces.some(p => provinceName.includes(p))) {
+                    return 'Miền Bắc';
+                } else if (centralProvinces.some(p => provinceName.includes(p))) {
+                    return 'Miền Trung';
+                } else {
+                    return 'Miền Nam';
+                }
+            }
+
+            // Image preview functionality
+            $('#Images').on('change', function() {
+                var files = this.files;
+                var previewContainer = $('#previewContainer');
+                var imagePreview = $('#imagePreview');
+                
+                previewContainer.empty();
+                
+                if (files.length > 0) {
+                    imagePreview.show();
+                    
+                    for (var i = 0; i < files.length; i++) {
+                        var file = files[i];
+                        var reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            var imgDiv = $('<div class="position-relative" style="width: 150px; height: 100px;">');
+                            var img = $('<img class="img-thumbnail w-100 h-100" style="object-fit: cover;">');
+                            img.attr('src', e.target.result);
+                            imgDiv.append(img);
+                            previewContainer.append(imgDiv);
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    }
+                } else {
+                    imagePreview.hide();
+                }
+            });
+
+            // Format price input
+            $('#PricePerNight').on('input', function() {
+                var value = $(this).val().replace(/[^0-9]/g, '');
+                $(this).val(value);
+            });
+
+            // Auto-fill coordinates based on address (simple implementation)
+            $('#Address, #wardSelect').on('blur change', function() {
+                var address = $('#Address').val();
+                var ward = $('#wardName').val();
+                var district = $('#districtName').val();
+                var city = $('#provinceName').val();
+                
+                if (address && ward && district && city) {
+                    // Auto-geocoding functionality
+                    $.ajax({
+                        url: '@Url.Action("GeocodeAddress", "Homestay")',
+                        type: 'POST',
+                        data: {
+                            address: address + ', ' + ward + ', ' + district,
+                            city: city,
+                            state: $('#stateName').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $('#Latitude').val(response.latitude);
+                                $('#Longitude').val(response.longitude);
+                                console.log('Auto-filled coordinates:', response.latitude, response.longitude);
+                            } else {
+                                console.log('Could not geocode address:', response.message);
+                            }
+                        },
+                        error: function() {
+                            console.log('Error calling geocoding service');
+                        }
+                    });
+                }
+            });
+
+            // Enhanced image preview with file validation
+            $('#Images').on('change', function() {
+                var files = this.files;
+                var previewContainer = $('#previewContainer');
+                var imagePreview = $('#imagePreview');
+                
+                previewContainer.empty();
+                
+                if (files.length > 0) {
+                    imagePreview.show();
+                    
+                    // Validate total file count
+                    if (files.length > 10) {
+                        alert('Bạn chỉ có thể tải lên tối đa 10 hình ảnh');
+                        $(this).val('');
+                        imagePreview.hide();
+                        return;
+                    }
+                    
+                    for (var i = 0; i < files.length; i++) {
+                        var file = files[i];
+                        
+                        // Validate file size (5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert('File "' + file.name + '" quá lớn. Kích thước tối đa cho phép là 5MB');
+                            $(this).val('');
+                            imagePreview.hide();
+                            return;
+                        }
+                        
+                        // Validate file type
+                        var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            alert('File "' + file.name + '" không đúng định dạng. Chỉ chấp nhận: JPG, PNG, GIF, WebP');
+                            $(this).val('');
+                            imagePreview.hide();
+                            return;
+                        }
+                        
+                        var reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            var imgDiv = $('<div class="position-relative" style="width: 150px; height: 100px;">');
+                            var img = $('<img class="img-thumbnail w-100 h-100" style="object-fit: cover;">');
+                            img.attr('src', e.target.result);
+                            imgDiv.append(img);
+                            previewContainer.append(imgDiv);
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    }
+                } else {
+                    imagePreview.hide();
+                }
+            });
+
+            // Real-time form validation
+            $('form').on('submit', function(e) {
+                var isValid = true;
+                var errorMessages = [];
+
+                // Validate required fields
+                $('input[required], textarea[required], select[required]').each(function() {
+                    if (!$(this).val() || $(this).val().trim() === '') {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                        errorMessages.push('Vui lòng điền đầy đủ thông tin bắt buộc');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                // Validate price
+                var price = parseInt($('#PricePerNight').val());
+                if (price < 50000) {
+                    isValid = false;
+                    $('#PricePerNight').addClass('is-invalid');
+                    errorMessages.push('Giá phòng phải từ 50,000 VND trở lên');
+                }
+
+                // Validate guests capacity
+                var maxGuests = parseInt($('#MaxGuests').val());
+                if (maxGuests < 1 || maxGuests > 20) {
+                    isValid = false;
+                    $('#MaxGuests').addClass('is-invalid');
+                    errorMessages.push('Số lượng khách phải từ 1 đến 20 người');
+                }
+
+                // Validate coordinates
+                var lat = parseFloat($('#Latitude').val());
+                var lng = parseFloat($('#Longitude').val());
+                if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                    isValid = false;
+                    errorMessages.push('Tọa độ không hợp lệ. Vui lòng kiểm tra lại địa chỉ');
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert(errorMessages.join('\n'));
+                    return false;
+                }
+
+                // Show loading state
+                $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang tạo...');
+            });
+            
+            // External Address API Service
+            class ExternalAddressService {
+                constructor() {
+                    this.baseUrl = 'https://provinces.open-api.vn/api';
+                    this.cache = new Map();
+                }
+
+                async getProvinces() {
+                    const cacheKey = 'provinces';
+                    if (this.cache.has(cacheKey)) {
+                        console.log('📦 Loading provinces from cache');
+                        return this.cache.get(cacheKey);
+                    }
+
+                    try {
+                        console.log(`📡 Fetching provinces from: ${this.baseUrl}/p/`);
+                        const response = await fetch(`${this.baseUrl}/p/`);
+                        
+                        console.log('📊 API Response Status:', response.status, response.statusText);
+                        console.log('📄 Response Headers:', response.headers);
+                        
+                        const data = await response.json();
+                        
+                        console.log('🔍 Raw API Response (first 3 items):');
+                        console.log(JSON.stringify(data.slice(0, 3), null, 2));
+                        console.log('📊 Total items received:', data.length);
+                        console.log('🏗️ Response structure analysis:');
+                        if (data.length > 0) {
+                            console.log('Sample item keys:', Object.keys(data[0]));
+                            console.log('Sample item:', data[0]);
+                        }
+                        
+                        const provinces = data.map(p => {
+                            console.log(`Processing province: code=${p.code}, name="${p.name}"`);
+                            return {
+                                code: p.code, // Keep as number
+                                name: p.name,
+                                // Log all available properties for debugging
+                                _debug: {
+                                    originalData: p,
+                                    allKeys: Object.keys(p)
+                                }
+                            };
+                        });
+
+                        console.log('✅ Processed provinces (first 3):');
+                        console.table(provinces.slice(0, 3));
+                        
+                        this.cache.set(cacheKey, provinces);
+                        return provinces;
+                    } catch (error) {
+                        console.error('❌ Error loading provinces:', error);
+                        console.error('Error stack:', error.stack);
+                        console.error('Error details:', {
+                            name: error.name,
+                            message: error.message,
+                            url: `${this.baseUrl}/p/`
+                        });
+                        return [];
+                    }
+                }
+
+                async getDistricts(provinceCode) {
+                    const cacheKey = `districts_${provinceCode}`;
+                    if (this.cache.has(cacheKey)) {
+                        console.log(`📦 Loading districts for province ${provinceCode} from cache`);
+                        return this.cache.get(cacheKey);
+                    }
+
+                    try {
+                        const url = `${this.baseUrl}/p/${provinceCode}?depth=2`;
+                        console.log(`📡 Fetching districts from: ${url}`);
+                        
+                        const response = await fetch(url);
+                        console.log('📊 Districts API Response Status:', response.status, response.statusText);
+                        
+                        const data = await response.json();
+                        
+                        console.log('🔍 Districts Raw API Response:');
+                        console.log(JSON.stringify(data, null, 2));
+                        
+                        const districts = data.districts ? data.districts.map(d => {
+                            console.log(`Processing district: code=${d.code}, name="${d.name}"`);
+                            return {
+                                code: d.code, // Keep as number
+                                name: d.name,
+                                _debug: {
+                                    originalData: d,
+                                    allKeys: Object.keys(d)
+                                }
+                            };
+                        }) : [];
+
+                        console.log(`✅ Processed ${districts.length} districts for province ${provinceCode}`);
+                        console.table(districts.slice(0, 5));
+
+                        this.cache.set(cacheKey, districts);
+                        return districts;
+                    } catch (error) {
+                        console.error(`❌ Error loading districts for province ${provinceCode}:`, error);
+                        console.error('Error details:', {
+                            name: error.name,
+                            message: error.message,
+                            url: `${this.baseUrl}/p/${provinceCode}?depth=2`
+                        });
+                        return [];
+                    }
+                }
+
+                async getWards(districtCode) {
+                    const cacheKey = `wards_${districtCode}`;
+                    if (this.cache.has(cacheKey)) {
+                        console.log(`📦 Loading wards for district ${districtCode} from cache`);
+                        return this.cache.get(cacheKey);
+                    }
+
+                    try {
+                        const url = `${this.baseUrl}/d/${districtCode}?depth=2`;
+                        console.log(`📡 Fetching wards from: ${url}`);
+                        
+                        const response = await fetch(url);
+                        console.log('📊 Wards API Response Status:', response.status, response.statusText);
+                        
+                        const data = await response.json();
+                        
+                        console.log('🔍 Wards Raw API Response:');
+                        console.log(JSON.stringify(data, null, 2));
+                        
+                        const wards = data.wards ? data.wards.map(w => {
+                            console.log(`Processing ward: code=${w.code}, name="${w.name}"`);
+                            return {
+                                code: w.code, // Keep as number
+                                name: w.name,
+                                _debug: {
+                                    originalData: w,
+                                    allKeys: Object.keys(w)
+                                }
+                            };
+                        }) : [];
+
+                        console.log(`✅ Processed ${wards.length} wards for district ${districtCode}`);
+                        console.table(wards.slice(0, 5));
+
+                        this.cache.set(cacheKey, wards);
+                        return wards;
+                    } catch (error) {
+                        console.error(`❌ Error loading wards for district ${districtCode}:`, error);
+                        console.error('Error details:', {
+                            name: error.name,
+                            message: error.message,
+                            url: `${this.baseUrl}/d/${districtCode}?depth=2`
+                        });
+                        return [];
+                    }
+                }
+            }
+
+            const addressService = new ExternalAddressService();
+
+            // Helper function to populate select dropdowns
+            function populateSelect(selector, items, placeholder) {
+                console.log(`🔧 populateSelect called for ${selector} with ${items.length} items`);
+                
+                const select = $(selector);
+                if (select.length === 0) {
+                    console.error(`❌ Element not found: ${selector}`);
+                    return;
+                }
+                
+                // Clear existing options
+                select.empty().append(`<option value="">${placeholder}</option>`);
+                console.log(`🧹 Cleared ${selector} and added placeholder`);
+                
+                // Add new options
+                let addedCount = 0;
+                items.forEach((item, index) => {
+                    if (!item.name || item.name.trim() === '') {
+                        console.warn(`⚠️ Item ${index} has missing name:`, item);
+                        return; // Skip items without names
+                    }
+                    
+                    const option = $('<option></option>')
+                        .attr('value', item.code)
+                        .text(item.name);
+                    select.append(option);
+                    addedCount++;
+                    
+                    // Log first few items for debugging
+                    if (index < 3) {
+                        console.log(`📝 Added option: ${item.code} = "${item.name}"`);
+                    }
+                });
+                
+                console.log(`✅ ${selector} populated with ${addedCount} options (${items.length - addedCount} skipped)`);
+            }
+
+            // Initialize address form
+            async function initializeAddressForm() {
+                console.log('🚀 Initializing address form...');
+                
+                try {
+                    console.log('📡 Fetching provinces from API...');
+                    const provinces = await addressService.getProvinces();
+                    
+                    console.log(`📊 API Response - Received ${provinces.length} provinces`);
+                    console.log('🔍 First province (sample):', provinces[0]);
+                    console.log('📋 All provinces data (full API response):');
+                    console.table(provinces.slice(0, 10)); // Show first 10 in table format
+                    console.log('📄 Complete provinces array:', provinces);
+                    
+                    if (provinces.length === 0) {
+                        console.warn('⚠️ No provinces received from API');
+                        $('#provinceSelect').empty().append('<option value="">-- Không có dữ liệu tỉnh/thành phố --</option>');
+                        return;
+                    }
+                    
+                    // Check for missing names with detailed logging
+                    const missingNames = provinces.filter(p => !p.name || p.name.trim() === '');
+                    if (missingNames.length > 0) {
+                        console.warn(`⚠️ ${missingNames.length} provinces have missing names:`, missingNames);
+                    }
+                    
+                    // Show detailed province info
+                    console.group('📊 Province Data Analysis');
+                    console.log('Total provinces:', provinces.length);
+                    console.log('Provinces with names:', provinces.filter(p => p.name && p.name.trim()).length);
+                    console.log('Sample province structures:');
+                    provinces.slice(0, 3).forEach((province, index) => {
+                        console.log(`Province ${index + 1}:`, {
+                            code: province.code,
+                            name: province.name,
+                            allProperties: Object.keys(province)
+                        });
+                    });
+                    console.groupEnd();
+                    
+                    console.log('🔧 Populating province dropdown...');
+                    populateSelect('#provinceSelect', provinces, '-- Chọn tỉnh/thành phố --');
+                    $('#provinceSelect').prop('disabled', false);
+                    
+                    console.log('✅ Province dropdown populated successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load provinces:', error);
+                    console.error('Error details:', error.stack);
+                    console.error('Full error object:', error);
+                    
+                    // Show user-friendly error
+                    $('#provinceSelect').empty().append('<option value="">-- Lỗi tải dữ liệu tỉnh/thành phố --</option>');
+                    
+                    // Optional: Show detailed error to user in development
+                    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                        alert(`Lỗi API: ${error.message}\n\nKiểm tra Console để xem chi tiết.`);
+                    } else {
+                        alert('Không thể tải danh sách tỉnh/thành phố. Vui lòng thử lại sau.');
+                    }
+                }
+            }
+
+            // Event handlers for address dropdowns
+            $('#provinceSelect').on('change', async function() {
+                const provinceCode = $(this).val();
+                const provinceText = $(this).find('option:selected').text();
+                
+                // Update hidden field and region
+                $('#provinceName').val(provinceText);
+                $('#State').val(getRegionFromProvince(provinceText));
+                
+                // Reset dependent dropdowns
+                $('#districtSelect').empty().append('<option value="">-- Chọn quận/huyện --</option>').prop('disabled', true);
+                $('#wardSelect').empty().append('<option value="">-- Chọn phường/xã --</option>').prop('disabled', true);
+                $('#districtName').val('');
+                $('#wardName').val('');
+                
+                if (provinceCode) {
+                    try {
+                        const districts = await addressService.getDistricts(provinceCode);
+                        populateSelect('#districtSelect', districts, '-- Chọn quận/huyện --');
+                        $('#districtSelect').prop('disabled', false);
+                    } catch (error) {
+                        console.error('Failed to load districts:', error);
+                        alert('Không thể tải danh sách quận/huyện. Vui lòng thử lại.');
+                    }
+                }
+            });
+
+            $('#districtSelect').on('change', async function() {
+                const districtCode = $(this).val();
+                const districtText = $(this).find('option:selected').text();
+                
+                // Update hidden field
+                $('#districtName').val(districtText);
+                
+                // Reset dependent dropdown
+                $('#wardSelect').empty().append('<option value="">-- Chọn phường/xã --</option>').prop('disabled', true);
+                $('#wardName').val('');
+                
+                if (districtCode) {
+                    try {
+                        const wards = await addressService.getWards(districtCode);
+                        populateSelect('#wardSelect', wards, '-- Chọn phường/xã --');
+                        $('#wardSelect').prop('disabled', false);
+                    } catch (error) {
+                        console.error('Failed to load wards:', error);
+                        alert('Không thể tải danh sách phường/xã. Vui lòng thử lại.');
+                    }
+                }
+            });
+
+            $('#wardSelect').on('change', function() {
+                const wardText = $(this).find('option:selected').text();
+                $('#wardName').val(wardText);
+            });
+
+            // ===== ENHANCED MAP FUNCTIONALITY =====
+            // Global variables for map
+            let map;
+            let currentMarker;
+            let geocodingInProgress = false;
+
+            // Initialize the Leaflet map
+            function initializeMap() {
+                // Default coordinates for Vietnam (Hanoi)
+                const defaultLat = 21.0285;
+                const defaultLng = 105.8542;
+                
+                // Get initial coordinates from form
+                let initialLat = parseFloat($('#Latitude').val()) || defaultLat;
+                let initialLng = parseFloat($('#Longitude').val()) || defaultLng;
+
+                // Initialize map with container options to prevent overflow
+                map = L.map('map', {
+                    preferCanvas: false,
+                    attributionControl: true,
+                    zoomControl: true,
+                    closePopupOnClick: true,
+                    trackResize: true,
+                    maxBounds: null,
+                    maxBoundsViscosity: 1.0,
+                    // Prevent map from expanding beyond container
+                    maxZoom: 19,
+                    minZoom: 5
+                }).setView([initialLat, initialLng], 13);
+
+                // Add OpenStreetMap tiles with proper sizing
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19,
+                    subdomains: 'abc',
+                    // Ensure tiles fit properly in container
+                    tileSize: 256,
+                    zoomOffset: 0
+                }).addTo(map);
+
+                // Force map to invalidate size multiple times to ensure proper fitting
+                setTimeout(() => {
+                    map.invalidateSize();
+                    // Additional resize after container is fully rendered
+                    setTimeout(() => {
+                        map.invalidateSize();
+                        // Fit map to container bounds
+                        map.getContainer().style.height = '100%';
+                        map.invalidateSize();
+                    }, 200);
+                }, 100);
+
+                // Add initial marker if coordinates exist
+                if ($('#Latitude').val() && $('#Longitude').val()) {
+                    addMarker(initialLat, initialLng);
+                }
+
+                // Map click event with enhanced reverse geocoding
+                map.on('click', function(e) {
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+                    addMarker(lat, lng);
+                    updateCoordinates(lat, lng);
+                    
+                    // Show loading indicator for address lookup
+                    showAddressDisplay('🔍 Đang tìm địa chỉ...');
+                    
+                    // Perform enhanced reverse geocoding and auto-fill address
+                    reverseGeocode(lat, lng);
+                });
+
+                // Ensure map stays in container on window resize
+                $(window).on('resize', function() {
+                    setTimeout(() => {
+                        if (map) {
+                            map.invalidateSize();
+                        }
+                    }, 100);
+                });
+            }
+
+            // Add or update marker on map
+            function addMarker(lat, lng, draggable = true) {
+                // Remove existing marker
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                }
+
+                // Add new marker
+                currentMarker = L.marker([lat, lng], {
+                    draggable: draggable
+                }).addTo(map);
+
+                // Handle marker drag
+                if (draggable) {
+                    currentMarker.on('dragend', function(e) {
+                        const newLat = e.target.getLatLng().lat;
+                        const newLng = e.target.getLatLng().lng;
+                        updateCoordinates(newLat, newLng);
+                        
+                        // Show loading indicator for address lookup
+                        showAddressDisplay('🔍 Đang cập nhật địa chỉ...');
+                        
+                        // Perform enhanced reverse geocoding and auto-fill address
+                        reverseGeocode(newLat, newLng);
+                    });
+                }
+
+                // Add popup
+                currentMarker.bindPopup('<div class="map-marker-popup"><strong>Vị trí homestay</strong><br>Kéo thả để điều chỉnh</div>');
+            }
+
+            // Update coordinate input fields
+            function updateCoordinates(lat, lng) {
+                $('#Latitude').val(lat.toFixed(6));
+                $('#Longitude').val(lng.toFixed(6));
+            }
+
+            // Enhanced reverse geocode using Enhanced Geocoding Service
+            async function reverseGeocode(lat, lng) {
+                console.log('🔍 Starting enhanced reverse geocoding for:', lat, lng);
+                console.log(`🌍 Map click coordinates: Lat=${lat.toFixed(6)}, Lng=${lng.toFixed(6)}`);
+                showAddressDisplay('🔍 Đang tìm địa chỉ...');
+                
+                try {
+                    const requestPayload = { latitude: lat, longitude: lng };
+                    console.log('📤 Sending request to Enhanced Geocoding Service:', requestPayload);
+                    
+                    const response = await fetch('/api/enhancedgeocoding/address', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestPayload)
+                    });
+
+                    console.log('📡 Enhanced reverse geocoding response status:', response.status, response.statusText);
+                    console.log('📄 Response headers:', response.headers);
+                    
+                    const data = await response.json();
+                    
+                    // 🎯 STORE ADDRESS COMPONENTS GLOBALLY FOR ENHANCED NOTIFICATIONS
+                    window.lastAddressComponents = data;
+                    
+                    // 🎯 HIỂN THỊ TOÀN BỘ DỮ LIỆU API RESPONSE
+                    console.group('📍 FULL API RESPONSE - Enhanced Geocoding Service');
+                    console.log('🔍 Complete response object:', data);
+                    console.log('📊 Response structure analysis:');
+                    console.log('  - success:', data.success);
+                    console.log('  - address:', data.address);
+                    console.log('  - components:', data.components);
+                    console.log('  - rawData:', data.rawData);
+                    console.log('  - source:', data.source);
+                    console.log('  - All response keys:', Object.keys(data));
+                    
+                    if (data.address) {
+                        console.log('📍 FULL ADDRESS from API:', data.address);
+                        console.log('📏 Address length:', data.address.length, 'characters');
+                        console.log('📋 Address parts (split by comma):', data.address.split(','));
+                    }
+                    
+                    if (data.components) {
+                        console.log('🏗️ FULL COMPONENTS from API:');
+                        console.table(data.components);
+                        console.log('  - Component keys:', Object.keys(data.components));
+                        Object.entries(data.components).forEach(([key, value]) => {
+                            console.log(`  - ${key}: "${value}" (${typeof value})`);
+                        });
+                    }
+                    
+                    if (data.rawData) {
+                        console.log('🔧 RAW DATA from geocoding service:');
+                        console.log(JSON.stringify(data.rawData, null, 2));
+                        
+                        // 🎯 SPECIFIC FOCUS ON PROVINCE/CITY AND DISTRICT INFO WITH NEW MAPPING
+                        if (data.rawData.address) {
+                            console.group('🌍 DETAILED LOCATION BREAKDOWN - New Custom Mapping');
+                            const addr = data.rawData.address;
+                            
+                            console.log('📋 Raw Nominatim Fields Available:');
+                            console.log(`  🛣️ road: "${addr.road || 'N/A'}"`);
+                            console.log(`  🏠 house_number: "${addr.house_number || 'N/A'}"`);
+                            console.log(`  🏘️ suburb: "${addr.suburb || 'N/A'}"`);
+                            console.log(`  🏡 village: "${addr.village || 'N/A'}"`);
+                            console.log(`  🏛️ city: "${addr.city || 'N/A'}"`);
+                            console.log(`  📍 county: "${addr.county || 'N/A'}"`);
+                            console.log(`  🗺️ state: "${addr.state || 'N/A'}"`);
+                            
+                            console.log('🎯 NEW CUSTOM MAPPING LOGIC:');
+                            console.log('  📍 Số nhà: Từ đầu road đến chữ "đường"');
+                            console.log('  🛣️ Tên đường: Từ chữ "đường" trở đi trong road');
+                            console.log('  🏘️ Quận/Huyện: suburb field');
+                            console.log('  🏡 Xã/Phường: village field (optional)');
+                            console.log('  🏛️ Tỉnh/TP: city field');
+                            
+                            if (data.components) {
+                                console.log('✅ PARSING RESULTS WITH NEW LOGIC:');
+                                console.log(`  🏠 Số nhà: "${data.components.houseNumber || 'N/A'}"`);
+                                console.log(`  🛣️ Tên đường: "${data.components.streetName || 'N/A'}"`);
+                                console.log(`  🏘️ Quận/Huyện: "${data.components.district || 'N/A'}" (from suburb)`);
+                                console.log(`  🏡 Xã/Phường: "${data.components.ward || 'N/A'}" (from village)`);
+                                console.log(`  🏛️ Tỉnh/TP: "${data.components.province || 'N/A'}" (from city)`);
+                            }
+                            
+                            // Display complete address for reference
+                            if (data.rawData.display_name) {
+                                console.log('📍 COMPLETE DISPLAY NAME:', data.rawData.display_name);
+                                console.log('📏 Total address length:', data.rawData.display_name.length, 'characters');
+                            }
+                            
+                            console.groupEnd();
+                        }
+                    }
+                    
+                    console.log('📊 API Response Summary:');
+                    console.log(`  - Source: ${data.source || 'Unknown'}`);
+                    console.log(`  - Success: ${data.success}`);
+                    console.log(`  - Has Address: ${!!data.address}`);
+                    console.log(`  - Has Components: ${!!data.components}`);
+                    console.log(`  - Has Raw Data: ${!!data.rawData}`);
+                    console.groupEnd();
+
+                    if (data.success && data.address) {
+                        // 🌟 ENHANCED FULL ADDRESS DISPLAY WITH COMPLETE INFO
+                        let fullAddressDisplay = '';
+                        
+                        // Try multiple sources for the most complete address
+                        if (data.rawData && data.rawData.display_name) {
+                            // Best case: we have raw data with display_name
+                            fullAddressDisplay = `📍 COMPLETE ADDRESS: ${data.rawData.display_name}`;
+                            console.log('✨ Using complete displayName from rawData:', data.rawData.display_name);
+                        } else if (data.displayName && data.displayName.length > (data.address?.length || 0)) {
+                            // Second best: displayName is longer than address
+                            fullAddressDisplay = `📍 COMPLETE ADDRESS: ${data.displayName}`;
+                            console.log('✨ Using displayName (more complete):', data.displayName);
+                        } else if (data.address) {
+                            // Fallback: use address field
+                            fullAddressDisplay = `📍 FULL ADDRESS: ${data.address}`;
+                            console.log('📍 Using address field:', data.address);
+                        }
+                        
+                        // Enhanced address breakdown display
+                        let addressBreakdown = '';
+                        if (data.rawData && data.rawData.address) {
+                            addressBreakdown += '<div class="mt-2 p-2 bg-light border rounded"><strong>🏗️ Address Breakdown:</strong><br>';
+                            const addressDetails = data.rawData.address;
+                            
+                            // Show all available address components
+                            Object.entries(addressDetails).forEach(([key, value]) => {
+                                if (value && value.trim && value.trim()) {
+                                    addressBreakdown += `<small><strong>${key}:</strong> ${value}</small><br>`;
+                                }
+                            });
+                            addressBreakdown += '</div>';
+                        } else if (data.displayName) {
+                            // Fallback: show displayName as single field
+                            addressBreakdown += '<div class="mt-2 p-2 bg-info text-white border rounded">';
+                            addressBreakdown += '<strong>📍 Complete Address Available:</strong><br>';
+                            addressBreakdown += `<small>${data.displayName}</small>`;
+                            addressBreakdown += '</div>';
+                        }
+                        
+                        showSuccessAddressDisplay(fullAddressDisplay + addressBreakdown);
+                        
+                        console.log('🏠 Starting enhanced address parsing...');
+                        console.log('🌟 Full address for UI display:', fullAddressDisplay);
+                        
+                        // Use enhanced components if available
+                        if (data.components) {
+                            console.log('✨ Using enhanced address components:', data.components);
+                            await parseEnhancedAddressComponents(data.components, data.address, data);
+                        } else {
+                            console.log('📝 Falling back to manual parsing');
+                            // Use the most complete address available
+                            const addressToUse = (data.rawData?.display_name) || data.displayName || data.address;
+                            await parseAndFillAddress(addressToUse, data);
+                        }
+                    } else {
+                        console.warn('⚠️ Enhanced reverse geocoding failed or no address returned:', data);
+                        console.log('❌ Detailed error analysis:');
+                        console.log('  - Response success:', data.success);
+                        console.log('  - Has address field:', 'address' in data);
+                        console.log('  - Address value:', data.address);
+                        console.log('  - Error message:', data.message || 'No error message');
+                        
+                        showErrorAddressDisplay('⚠️ Không thể tìm địa chỉ cho vị trí này');
+                    }
+                } catch (error) {
+                    console.error('❌ Enhanced reverse geocoding error:', error);
+                    console.error('❌ Error details:');
+                    console.error('  - Error name:', error.name);
+                    console.error('  - Error message:', error.message);
+                    console.error('  - Error stack:', error.stack);
+                    console.error('  - Request coordinates:', lat, lng);
+                    
+                    showErrorAddressDisplay('❌ Lỗi khi tìm địa chỉ. Vui lòng nhập thủ công.');
+                }
+            }
+
+            // Parse enhanced address components from Enhanced Geocoding Service
+            async function parseEnhancedAddressComponents(components, fullAddress, enhancedData = null) {
+                console.log('✨ Processing enhanced address components:', components);
+                
+                try {
+                    // 1. Direct component mapping - more reliable than parsing
+                    if (components.houseNumber && components.houseNumber.trim()) {
+                        $('#houseNumber').val(components.houseNumber.trim());
+                        console.log('🏠 House number set:', components.houseNumber);
+                        
+                        // Visual feedback
+                        $('#houseNumber').addClass('is-valid');
+                        setTimeout(() => $('#houseNumber').removeClass('is-valid'), 2000);
+                    }
+                    
+                    if (components.streetName && components.streetName.trim()) {
+                        $('#Address').val(components.streetName.trim());
+                        console.log('🛣️ Street name set:', components.streetName);
+                        
+                        // Visual feedback
+                        $('#Address').addClass('is-valid');
+                        setTimeout(() => $('#Address').removeClass('is-valid'), 2000);
+                    }
+                    
+                    // 2. Handle case where Enhanced service didn't extract house number properly
+                    if (!components.houseNumber && fullAddress) {
+                        console.log('🔧 Enhanced service missing house number, trying fallback parsing...');
+                        await parseAndFillAddress(fullAddress, enhancedData);
+                        return; // Exit early, let parseAndFillAddress handle everything
+                    }
+                    
+                    // 3. Administrative divisions with Enhanced data
+                    if (components.province && components.province.trim()) {
+                        console.log('🌍 Attempting to match province:', components.province);
+                        await matchAndSelectProvince(components.province.trim());
+                    }
+                    
+                    // Show success notification with the most complete address data available
+                    let notificationText = fullAddress;
+                    if (enhancedData) {
+                        if (enhancedData.rawData && enhancedData.rawData.display_name) {
+                            notificationText = enhancedData.rawData.display_name;
+                            console.log('📢 Using complete display name from rawData for enhanced notification:', notificationText);
+                        } else if (enhancedData.displayName && enhancedData.displayName.length > (fullAddress?.length || 0)) {
+                            notificationText = enhancedData.displayName;
+                            console.log('📢 Using displayName (more complete) for enhanced notification:', notificationText);
+                        }
+                    }
+                    showSuccessNotification('✅ Đã tự động điền địa chỉ từ bản đồ!', notificationText);
+                    console.log('✅ Enhanced address parsing completed successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Error in enhanced address parsing:', error);
+                    showErrorNotification('⚠️ Không thể tự động điền địa chỉ. Vui lòng nhập thủ công.');
+                }
+            }
+
+            // Enhanced province matching function
+            async function matchAndSelectProvince(provinceName) {
+                console.log('🔍 Looking for province match:', provinceName);
+                
+                // Get current province list for matching
+                const currentProvinces = Array.from($('#provinceSelect option')).map(option => ({
+                    code: option.value,
+                    name: option.text
+                })).filter(p => p.code);
+
+                // Enhanced province matching with Vietnamese patterns
+                let matchedProvince = null;
+                
+                // Try exact match first
+                matchedProvince = currentProvinces.find(p => 
+                    provinceName.toLowerCase().trim() === p.name.toLowerCase().trim()
+                );
+                
+                if (!matchedProvince) {
+                    // Try partial match with common Vietnamese province formats
+                    matchedProvince = currentProvinces.find(p => {
+                        const cleanProvinceName = provinceName.toLowerCase()
+                            .replace(/^(thành phố|tỉnh|tp\.?)\s*/i, '')
+                            .replace(/\s*(city|province)$/i, '')
+                            .trim();
+                        
+                        const cleanProvince = p.name.toLowerCase()
+                            .replace(/^(thành phố|tỉnh|tp\.?)\s*/i, '')
+                            .replace(/\s*(city|province)$/i, '')
+                            .trim();
+                        
+                        return cleanProvinceName.includes(cleanProvince) || cleanProvince.includes(cleanProvinceName);
+                    });
+                }
+                
+                if (matchedProvince) {
+                    console.log('✅ Found province match:', matchedProvince.name);
+                    $('#provinceSelect').val(matchedProvince.code).trigger('change');
+                    $('#provinceName').val(matchedProvince.name);
+                    
+                    // Visual feedback
+                    $('#provinceSelect').addClass('is-valid');
+                    setTimeout(() => {
+                        $('#provinceSelect').removeClass('is-valid');
+                    }, 2500);
+                    
+                    console.log('🎯 Province auto-selected:', matchedProvince.name);
+                } else {
+                    console.log('⚠️ Could not auto-match province:', provinceName);
+                }
+            }
+
+            // Parse reverse geocoded address and fill form fields (fallback method)
+            async function parseAndFillAddress(fullAddress, enhancedData = null) {
+                console.log('🏠 Parsing address:', fullAddress);
+                
+                try {
+                    // Parse the address to extract components
+                    const addressParts = fullAddress.split(',').map(part => part.trim());
+                    console.log('📋 Address parts:', addressParts);
+                    
+                    // Enhanced street address extraction with house number separation
+                    if (addressParts.length > 0) {
+                        let fullStreetAddress = addressParts[0]; // First part usually contains street info
+                        console.log('🛣️ Processing street address:', fullStreetAddress);
+                        
+                        // 🔧 ENHANCED PARSING FOR NOMINATIM FORMAT
+                        // Nominatim often returns: "180, Đường Điện Biên Phủ" instead of "180 Đường Điện Biên Phủ"
+                        
+                        // Remove leading/trailing comma and normalize
+                        fullStreetAddress = fullStreetAddress.replace(/^,+|,+$/g, '').trim();
+                        
+                        // Pattern 1: "123, Street Name" (Nominatim format)
+                        let houseNumberMatch = fullStreetAddress.match(/^(\d+[a-zA-Z]?(?:\/\d+[a-zA-Z]?)?)\s*,\s*(.+)/);
+                        
+                        if (!houseNumberMatch) {
+                            // Pattern 2: "123 Street Name" (Google format)
+                            houseNumberMatch = fullStreetAddress.match(/^(\d+[a-zA-Z]?(?:\/\d+[a-zA-Z]?)?)\s+(.+)/);
+                        }
+                        
+                        if (!houseNumberMatch) {
+                            // Pattern 3: "Số 123, Street Name" (Vietnamese format)
+                            houseNumberMatch = fullStreetAddress.match(/^(?:Số\s*)?(\d+[a-zA-Z]?(?:\/\d+[a-zA-Z]?)?)\s*,?\s*(.+)/i);
+                        }
+                        
+                        if (houseNumberMatch) {
+                            // Found house number pattern
+                            const houseNumber = houseNumberMatch[1];
+                            let streetName = houseNumberMatch[2].trim();
+                            
+                            // Clean street name (remove "Đường" prefix if present)
+                            streetName = streetName.replace(/^(Đường|Street|Phố)\s+/i, '');
+                            
+                            console.log('✅ Found house number:', houseNumber);
+                            console.log('✅ Found street name:', streetName);
+                            
+                            $('#houseNumber').val(houseNumber);
+                            $('#Address').val(streetName);
+                            
+                            // Visual feedback
+                            $('#houseNumber').addClass('is-valid');
+                            $('#Address').addClass('is-valid');
+                            setTimeout(() => {
+                                $('#houseNumber').removeClass('is-valid');
+                                $('#Address').removeClass('is-valid');
+                            }, 2000);
+                        } else {
+                            console.log('ℹ️ No house number pattern found, checking alternative patterns...');
+                            
+                            // Try alternative patterns for edge cases
+                            const alternativeMatch = fullStreetAddress.match(/^(.+?)\s+(\d+[a-zA-Z]?(?:\/\d+[a-zA-Z]?)?)$/);
+                            if (alternativeMatch) {
+                                // "Street Name 123" format
+                                const streetPart = alternativeMatch[1].trim().replace(/^(Đường|Street|Phố)\s+/i, '');
+                                const numberPart = alternativeMatch[2].trim();
+                                
+                                console.log('📍 Alternative pattern - Street:', streetPart, 'Number:', numberPart);
+                                $('#Address').val(streetPart);
+                                $('#houseNumber').val(numberPart);
+                            } else {
+                                // Just use as street name, clear house number
+                                const cleanStreetName = fullStreetAddress.replace(/^(Đường|Street|Phố)\s+/i, '');
+                                
+                                console.log('📍 Using as street name only (detailed info):');
+                                console.log('  📄 Full address received:', fullAddress);
+                                console.log('  🛣️ Full street address part:', fullStreetAddress);
+                                console.log('  🧹 Clean street name:', cleanStreetName);
+                                console.log('  📋 All address parts:', addressParts);
+                                console.log('  🔍 Patterns tried but not matched:');
+                                console.log('    - Pattern 1 (Nominatim): /^(\\d+[a-zA-Z]?(?:\\/\\d+[a-zA-Z]?)?)\\s*,\\s*(.+)/');
+                                console.log('    - Pattern 2 (Google): /^(\\d+[a-zA-Z]?(?:\\/\\d+[a-zA-Z]?)?)\\s+(.+)/');
+                                console.log('    - Pattern 3 (Vietnamese): /^(?:Số\\s*)?(\\d+[a-zA-Z]?(?:\\/\\d+[a-zA-Z]?)?)\\s*,?\\s*(.+)/i');
+                                console.log('    - Alternative pattern: /^(.+?)\\s+(\\d+[a-zA-Z]?(?:\\/\\d+[a-zA-Z]?)?)$/');
+                                console.log('  💡 Recommendation: Check if API format has changed');
+                                
+                                $('#Address').val(cleanStreetName);
+                                $('#houseNumber').val('');
+                            }
+                            
+                            // Visual feedback
+                            $('#Address').addClass('is-valid');
+                            setTimeout(() => {
+                                $('#Address').removeClass('is-valid');
+                            }, 2000);
+                        }
+                    }
+
+                    // Show notification with the most complete address available
+                    let notificationText = fullAddress;
+                    if (enhancedData) {
+                        // Try to get the most complete address
+                        if (enhancedData.rawData && enhancedData.rawData.display_name) {
+                            notificationText = enhancedData.rawData.display_name;
+                            console.log('📢 Using complete display name from rawData for notification:', notificationText);
+                        } else if (enhancedData.displayName && enhancedData.displayName.length > (fullAddress?.length || 0)) {
+                            notificationText = enhancedData.displayName;
+                            console.log('📢 Using displayName (more complete) for notification:', notificationText);
+                        } else {
+                            console.log('📢 Using fallback address for notification:', notificationText);
+                        }
+                    }
+                    showSuccessNotification('✅ Đã tự động điền địa chỉ từ bản đồ!', notificationText);
+                    console.log('✅ Address parsing completed successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Error parsing address:', error);
+                    showErrorNotification('⚠️ Không thể tự động điền địa chỉ. Vui lòng nhập thủ công.');
+                }
+            }
+
+            // Enhanced address display functions
+            function showAddressDisplay(text) {
+                $('#displayText').text(text);
+                $('#addressDisplay').removeClass('alert-danger alert-warning alert-success').addClass('alert-info').show();
+            }
+
+            function showSuccessAddressDisplay(text) {
+                $('#displayText').html(text); // Use html() to allow formatting
+                $('#addressDisplay').removeClass('alert-danger alert-info alert-warning').addClass('alert-success').show();
+                
+                // Also show in console for easy copying
+                console.log('🎯 ADDRESS DISPLAY UPDATED:', text);
+            }
+
+            function showErrorAddressDisplay(text) {
+                $('#displayText').text(text);
+                $('#addressDisplay').removeClass('alert-success alert-info alert-warning').addClass('alert-danger').show();
+            }
+
+            // Show success notification with full address and detailed breakdown
+            function showSuccessNotification(message, fullAddress = null, addressComponents = null) {
+                let notificationContent = message;
+                
+                if (fullAddress) {
+                    notificationContent += `<br><small class="text-muted"><strong>📍 Địa chỉ đầy đủ:</strong><br>${fullAddress}</small>`;
+                    console.log('📍 FULL ADDRESS in notification:', fullAddress);
+                    
+                    // If we have access to address components, show key location info
+                    if (window.lastAddressComponents && window.lastAddressComponents.rawData && window.lastAddressComponents.rawData.address) {
+                        const addr = window.lastAddressComponents.rawData.address;
+                        let locationInfo = '';
+                        
+                        // Show province/city
+                        const province = addr.state || addr.province || addr.region || addr.city;
+                        if (province) {
+                            locationInfo += `<br><small class="text-info">🏛️ <strong>Tỉnh/Thành:</strong> ${province}</small>`;
+                        }
+                        
+                        // Show district
+                        const district = addr.county || addr.state_district || addr.district || addr.administrative;
+                        if (district) {
+                            locationInfo += `<br><small class="text-info">🏘️ <strong>Quận/Huyện:</strong> ${district}</small>`;
+                        }
+                        
+                        // Show ward/commune
+                        const ward = addr.suburb || addr.village || addr.town || addr.municipality || addr.quarter;
+                        if (ward) {
+                            locationInfo += `<br><small class="text-info">🏠 <strong>Phường/Xã:</strong> ${ward}</small>`;
+                        }
+                        
+                        if (locationInfo) {
+                            notificationContent += locationInfo;
+                        }
+                    }
+                }
+                
+                const notification = $(`
+                    <div class="alert alert-success alert-dismissible fade show position-fixed" 
+                         style="top: 100px; right: 20px; z-index: 9999; min-width: 400px; max-width: 600px;">
+                        ${notificationContent}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `);
+                $('body').append(notification);
+                
+                // Auto remove after 7 seconds (longer to read detailed address)
+                setTimeout(() => {
+                    notification.alert('close');
+                }, 7000);
+            }
+
+            // Show error notification
+            function showErrorNotification(message) {
+                const notification = $(`
+                    <div class="alert alert-warning alert-dismissible fade show position-fixed" 
+                         style="top: 100px; right: 20px; z-index: 9999; min-width: 300px;">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `);
+                $('body').append(notification);
+                
+                // Auto remove after 4 seconds
+                setTimeout(() => {
+                    notification.alert('close');
+                }, 4000);
+            }
+
+            // Build full address including house number
+            function buildFullAddress() {
+                const houseNumber = $('#houseNumber').val();
+                const streetName = $('#Address').val();
+                const ward = $('#wardName').val();
+                const district = $('#districtName').val();
+                const province = $('#provinceName').val();
+                
+                const parts = [];
+                
+                // Combine house number and street name
+                if (houseNumber && streetName) {
+                    parts.push(`${houseNumber} ${streetName}`);
+                } else if (streetName) {
+                    parts.push(streetName);
+                } else if (houseNumber) {
+                    parts.push(houseNumber);
+                }
+                
+                // Add other address parts
+                if (ward) parts.push(ward);
+                if (district) parts.push(district);
+                if (province) parts.push(province);
+                
+                return parts.filter(part => part && part.trim()).join(', ');
+            }
+
+            // Enhanced auto-geocoding when address fields change
+            $('#Address, #houseNumber, #wardSelect, #districtSelect, #provinceSelect').on('change blur', function() {
+                // Debounce the geocoding to avoid too many requests
+                clearTimeout(window.geocodeTimeout);
+                window.geocodeTimeout = setTimeout(function() {
+                    const address = buildFullAddress();
+                    if (address.length > 10) { // Only geocode if we have a reasonable address
+                        showAddressDisplay('🔍 Đang tìm vị trí cho địa chỉ...');
+                        // geocodeAddress(); // Uncomment if forward geocoding is needed
+                    }
+                }, 1500); // Increased debounce time
+            });
+
+            // Initialize address form and map on page load
+            initializeAddressForm();
+            
+            // Initialize map after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeMap();
+            }, 500);
+        });
+    </script>
+}
+
+@section Styles {
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        /* Map container styling to prevent overflow */
+        .map-container {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+        }
+        
+        /* Ensure Leaflet controls stay within bounds */
+        .leaflet-container {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        /* Style address display */
+        #addressDisplay {
+            margin-bottom: 15px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        /* Map button styling */
+        .map-buttons {
+            margin-bottom: 10px;
+        }
+        
+        .map-buttons .btn {
+            margin-right: 8px;
+            margin-bottom: 5px;
+        }
+        
+        /* Responsive map on smaller screens */
+        @@media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+        }
+        
+        /* Fix for map tiles loading issues */
+        .leaflet-container .leaflet-tile {
+            max-width: none !important;
+            max-height: none !important;
+        }
+    </style>
+}

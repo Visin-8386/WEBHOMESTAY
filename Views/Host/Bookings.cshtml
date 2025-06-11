@@ -1,0 +1,272 @@
+@using WebHSPromotionType = WebHS.Models.PromotionType
+@using WebHSBookingStatus = WebHS.Models.BookingStatus
+@model WebHS.ViewModels.HostBookingListViewModel
+
+@{
+    ViewData["Title"] = "Quản Lý Đặt Phòng";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quản Lý Đặt Phòng</h3>
+                    <div class="card-tools">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                Trạng thái: @(ViewBag.Status ?? "Tất cả")
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="?status=">Tất cả</a>
+                                <a class="dropdown-item" href="?status=pending">Chờ xác nhận</a>
+                                <a class="dropdown-item" href="?status=confirmed">Đã xác nhận</a>
+                                <a class="dropdown-item" href="?status=checkedin">Đã check-in</a>
+                                <a class="dropdown-item" href="?status=completed">Hoàn thành</a>
+                                <a class="dropdown-item" href="?status=cancelled">Đã hủy</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if(!Model.Bookings.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h4>Chưa có đặt phòng nào</h4>
+                            <p class="text-muted">Bạn chưa có đặt phòng nào cho các homestay của mình.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Mã đặt phòng</th>
+                                        <th>Khách hàng</th>
+                                        <th>Homestay</th>
+                                        <th>Ngày nhận/trả</th>
+                                        <th>Số khách</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(var booking in Model.Bookings)
+                                    {
+                                        <tr>
+                                            <td><strong>#@booking.Id</strong></td>
+                                            <td>
+                                                <div>
+                                                    <strong>@booking.UserName</strong><br>
+                                                    <small class="text-muted">@booking.UserEmail</small><br>
+                                                    @if(!string.IsNullOrEmpty(booking.UserPhone))
+                                                    {
+                                                        <small class="text-muted"><i class="fas fa-phone"></i> @booking.UserPhone</small>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>@booking.HomestayName</strong><br>
+                                                <small class="text-muted">@booking.HomestayLocation</small>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <strong>@booking.CheckInDate.ToString("dd/MM/yyyy")</strong><br>
+                                                    <small class="text-muted">đến @booking.CheckOutDate.ToString("dd/MM/yyyy")</small><br>
+                                                    <small class="text-info">@((booking.CheckOutDate - booking.CheckInDate).Days) đêm</small>
+                                                </div>
+                                            </td>
+                                            <td>@booking.NumberOfGuests khách</td>
+                                            <td>
+                                                @if(booking.DiscountAmount > 0)
+                                                {
+                                                    <div>
+                                                        <s class="text-muted">@booking.TotalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</s><br>
+                                                        <strong class="text-success">@booking.FinalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</strong><br>
+                                                        <small class="text-success">Giảm @booking.DiscountAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</small>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <strong>@booking.FinalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</strong>
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch(booking.Status.ToString())
+                                                {
+                                                    case "Pending":
+                                                        <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                                        break;
+                                                    case "Confirmed":
+                                                        <span class="badge bg-info text-white">Đã xác nhận</span>
+                                                        break;
+                                                    case "CheckedIn":
+                                                        <span class="badge bg-primary text-white">Đã check-in</span>
+                                                        break;
+                                                    case "Completed":
+                                                        <span class="badge bg-success text-white">Hoàn thành</span>
+                                                        break;
+                                                    case "Cancelled":
+                                                        <span class="badge bg-danger text-white">Đã hủy</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#bookingModal" 
+                                                            data-booking-id="@booking.Id">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    
+                                                    @if(booking.Status.ToString() == "Pending")
+                                                    {
+                                                        <button type="button" class="btn btn-success btn-sm" onclick="confirmBooking(@booking.Id)">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger btn-sm" onclick="rejectBooking(@booking.Id)">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    }
+                                                    
+                                                    @if(booking.Status.ToString() == "Confirmed" && booking.CheckInDate <= DateTime.Today)
+                                                    {
+                                                        <button type="button" class="btn btn-primary btn-sm" onclick="checkInBooking(@booking.Id)">
+                                                            <i class="fas fa-sign-in-alt"></i>
+                                                        </button>
+                                                    }
+                                                    
+                                                    @if(booking.Status.ToString() == "CheckedIn" && booking.CheckOutDate <= DateTime.Today)
+                                                    {
+                                                        <button type="button" class="btn btn-success btn-sm" onclick="completeBooking(@booking.Id)">
+                                                            <i class="fas fa-flag-checkered"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                @if(Model.TotalPages > 1)
+                {
+                    <div class="card-footer clearfix">
+                        <ul class="pagination pagination-sm m-0 float-right">
+                            @if(Model.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(Model.CurrentPage - 1)&status=@ViewBag.Status">«</a>
+                                </li>
+                            }
+
+                            @for(int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="?page=@i&status=@ViewBag.Status">@i</a>
+                                </li>
+                            }
+
+                            @if(Model.CurrentPage < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(Model.CurrentPage + 1)&status=@ViewBag.Status">»</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi Tiết Đặt Phòng</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="bookingDetailContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#bookingModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var bookingId = button.data('booking-id');
+            
+            // Load booking details
+            $.get('@Url.Action("GetBookingDetail")', { id: bookingId }, function(data) {
+                $('#bookingDetailContent').html(data);
+            });
+        });
+
+        function confirmBooking(id) {
+            if (confirm('Bạn có chắc chắn muốn xác nhận đặt phòng này?')) {
+                $.post('@Url.Action("ConfirmBooking")', { id: id }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function rejectBooking(id) {
+            var reason = prompt('Vui lòng nhập lý do từ chối:');
+            if (reason && reason.trim()) {
+                $.post('@Url.Action("RejectBooking")', { id: id, reason: reason }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function checkInBooking(id) {
+            if (confirm('Xác nhận khách hàng đã check-in?')) {
+                $.post('@Url.Action("CheckInBooking")', { id: id }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function completeBooking(id) {
+            if (confirm('Xác nhận hoàn thành đặt phòng này?')) {
+                $.post('@Url.Action("CompleteBooking")', { id: id }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+}
+

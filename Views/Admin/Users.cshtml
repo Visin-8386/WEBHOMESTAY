@@ -1,0 +1,245 @@
+@using WebHSPromotionType = WebHS.Models.PromotionType
+@model WebHS.ViewModels.AdminUserListViewModel
+
+@{
+    ViewData["Title"] = "Quản Lý Người Dùng";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">                <div class="card-header">
+                    <h3 class="card-title">Quản Lý Người Dùng</h3>
+                    <div class="card-tools">
+                        <form method="get" action="@Url.Action("Users")" class="d-flex">
+                            <div class="input-group input-group-sm mr-2">                                <select name="role" class="form-control">
+                                    <option value="">-- Tất cả vai trò --</option>
+                                    <option value="User" selected="@(Model.SelectedRole == "User")">Người dùng</option>
+                                    <option value="Host" selected="@(Model.SelectedRole == "Host")">Chủ nhà</option>
+                                    <option value="Admin" selected="@(Model.SelectedRole == "Admin")">Quản trị viên</option>
+                                </select>
+                            </div>
+                            <div class="input-group input-group-sm" style="width: 180px;">
+                                <input type="text" name="search" class="form-control float-right" placeholder="Tìm kiếm" value="@Model.SearchTerm">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-default">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ảnh đại diện</th>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tham gia</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var user in Model.Users)
+                            {
+                                <tr>
+                                    <td>@user.Id</td>
+                                    <td>
+                                        @if(!string.IsNullOrEmpty(user.ProfilePicture))
+                                        {
+                                            <img src="@user.ProfilePicture" class="img-circle elevation-2" alt="User Image" style="width: 40px; height: 40px;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-secondary img-circle elevation-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        }
+                                    </td>                                    <td>@user.FullName</td>
+                                    <td>@user.Email</td>
+                                    <td>@user.PhoneNumber</td>
+                                    <td>
+                                        @{
+                                            var roles = Model.UserRoles.ContainsKey(user.Id) ? Model.UserRoles[user.Id] : new List<string>();
+                                        }                                        @foreach(var role in roles)
+                                        {
+                                            <span class="badge @(role == "Admin" ? "bg-danger text-white" : role == "Host" ? "bg-warning text-dark" : "bg-info text-white")">@role</span>
+                                        }
+                                    </td>                                    <td>
+                                        @if(user.IsActive)
+                                        {
+                                            <span class="badge bg-success text-white">Hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger text-white">Đã khóa</span>
+                                        }
+                                    </td>
+                                    <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="@Url.Action("UserDetail", new { id = user.Id })" class="btn btn-info btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if(user.IsActive)
+                                            {
+                                                <button type="button" class="btn btn-warning btn-sm" onclick="lockUser('@user.Id')">
+                                                    <i class="fas fa-lock"></i>
+                                                </button>                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-success btn-sm" onclick="unlockUser('@user.Id')">
+                                                    <i class="fas fa-unlock"></i>
+                                                </button>
+                                            }
+                                            @{
+                                                var userCurrentRoles = Model.UserRoles.ContainsKey(user.Id) ? Model.UserRoles[user.Id] : new List<string>();
+                                            }
+                                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#roleModal" data-userid="@user.Id" data-roles="@string.Join(",", userCurrentRoles)">
+                                                <i class="fas fa-user-cog"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>                <div class="card-footer clearfix">
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        @if(Model.CurrentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="?page=@(Model.CurrentPage - 1)&search=@Model.SearchTerm&role=@Model.SelectedRole">«</a>
+                            </li>
+                        }
+
+                        @for(int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i&search=@Model.SearchTerm&role=@Model.SelectedRole">@i</a>
+                            </li>
+                        }
+
+                        @if(Model.CurrentPage < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="?page=@(Model.CurrentPage + 1)&search=@Model.SearchTerm&role=@Model.SelectedRole">»</a>
+                            </li>
+                        }
+                    </ul>
+                    <div class="float-left">
+                        <span>Hiển thị @Math.Min((Model.CurrentPage - 1) * 20 + 1, Model.TotalCount) - @Math.Min(Model.CurrentPage * 20, Model.TotalCount) trên @Model.TotalCount người dùng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Assignment Modal -->
+<div class="modal fade" id="roleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập nhật vai trò</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="roleForm">
+                    <input type="hidden" id="userId" name="userId">
+                    <div class="form-group">
+                        <label>Vai trò</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="User" id="roleUser" name="roles">
+                            <label class="form-check-label" for="roleUser">Người dùng</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="Host" id="roleHost" name="roles">
+                            <label class="form-check-label" for="roleHost">Chủ nhà</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="Admin" id="roleAdmin" name="roles">
+                            <label class="form-check-label" for="roleAdmin">Quản trị viên</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="updateRoles()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#roleModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var userId = button.data('userid');
+            var roles = button.data('roles').split(',');
+            
+            $('#userId').val(userId);
+            
+            // Clear all checkboxes
+            $('input[name="roles"]').prop('checked', false);
+            
+            // Check current roles
+            roles.forEach(function(role) {
+                if (role.trim()) {
+                    $('input[name="roles"][value="' + role.trim() + '"]').prop('checked', true);
+                }
+            });
+        });
+
+        function updateRoles() {
+            var userId = $('#userId').val();
+            var roles = [];
+            $('input[name="roles"]:checked').each(function() {
+                roles.push($(this).val());
+            });
+
+            $.post('@Url.Action("UpdateUserRoles")', { userId: userId, roles: roles }, function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Có lỗi xảy ra: ' + data.message);
+                }
+            });
+        }
+
+        function lockUser(userId) {
+            if (confirm('Bạn có chắc chắn muốn khóa tài khoản này?')) {
+                $.post('@Url.Action("LockUser")', { userId: userId }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function unlockUser(userId) {
+            if (confirm('Bạn có chắc chắn muốn mở khóa tài khoản này?')) {
+                $.post('@Url.Action("UnlockUser")', { userId: userId }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+}
+

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebHS API Integration Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .api-card {
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        .api-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-loading { background-color: #ffc107; }
+        .weather-widget {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .code-block {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4">
+                    <i class="fas fa-rocket text-primary"></i>
+                    WebHS Free API Integration Demo
+                </h1>
+                <p class="text-center text-muted mb-5">
+                    Test và demo các API miễn phí đã tích hợp vào hệ thống WebHS Homestay Booking
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Weather API Demo -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card api-card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cloud-sun"></i> Weather API
+                        </h5>
+                        <small>OpenWeatherMap - 1,000 calls/day FREE</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Test bằng tọa độ (Hà Nội):</label>
+                            <button class="btn btn-outline-primary btn-sm w-100" onclick="testWeatherCoordinates()">
+                                <span class="status-indicator status-loading" id="weather-coord-status"></span>
+                                Test Weather by Coordinates
+                            </button>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Test bằng tên thành phố:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cityInput" value="Ho Chi Minh City" placeholder="Nhập tên thành phố">
+                                <button class="btn btn-outline-primary" onclick="testWeatherCity()">
+                                    <span class="status-indicator status-loading" id="weather-city-status"></span>
+                                    Test
+                                </button>
+                            </div>
+                        </div>
+                        <div id="weatherResult" class="weather-widget" style="display: none;">
+                            <!-- Weather result will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geocoding API Demo -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card api-card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-marker-alt"></i> Geocoding API
+                        </h5>
+                        <small>Nominatim/OSM - Unlimited FREE</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Chuyển địa chỉ thành tọa độ:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="addressInput" value="Hồ Gươm, Hà Nội" placeholder="Nhập địa chỉ">
+                                <button class="btn btn-outline-success" onclick="testGeocoding()">
+                                    <span class="status-indicator status-loading" id="geocoding-status"></span>
+                                    Test
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Chuyển tọa độ thành địa chỉ:</label>
+                            <button class="btn btn-outline-success btn-sm w-100" onclick="testReverseGeocoding()">
+                                <span class="status-indicator status-loading" id="reverse-geocoding-status"></span>
+                                Test Reverse Geocoding (21.0285, 105.8542)
+                            </button>
+                        </div>
+                        <div id="geocodingResult" class="code-block" style="display: none;">
+                            <!-- Geocoding result will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification API Demo -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card api-card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bell"></i> Notification System
+                        </h5>
+                        <small>Browser Notifications + Database</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Test Browser Notification:</label>
+                            <button class="btn btn-outline-warning w-100" onclick="testBrowserNotification()">
+                                <span class="status-indicator status-loading" id="browser-notif-status"></span>
+                                Test Browser Notification
+                            </button>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Test Email Notification:</label>
+                            <div class="input-group">
+                                <input type="email" class="form-control" id="emailInput" value="test@example.com" placeholder="Email">
+                                <button class="btn btn-outline-warning" onclick="testEmailNotification()">
+                                    <span class="status-indicator status-loading" id="email-notif-status"></span>
+                                    Send
+                                </button>
+                            </div>
+                        </div>
+                        <div id="notificationResult" class="alert alert-info" style="display: none;">
+                            <!-- Notification result will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Endpoints Documentation -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-code"></i> API Endpoints Available
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6 class="text-primary">Weather API</h6>
+                                <div class="code-block">
+                                    <strong>GET</strong> /api/Weather/coordinates?latitude={lat}&longitude={lng}<br>
+                                    <strong>GET</strong> /api/Weather/city/{city}<br>
+                                    <strong>GET</strong> /api/Weather/homestay/{id}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-success">Geocoding API</h6>
+                                <div class="code-block">
+                                    <strong>GET</strong> /api/Geocoding/coordinates?address={address}<br>
+                                    <strong>GET</strong> /api/Geocoding/address?latitude={lat}&longitude={lng}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-warning">API Keys Needed</h6>
+                                <div class="code-block">
+                                    <strong>OpenWeatherMap:</strong> FREE 1,000 calls/day<br>
+                                    <strong>Nominatim:</strong> FREE unlimited<br>
+                                    <strong>Browser Notifications:</strong> FREE built-in
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Setup Instructions -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog"></i> Setup Instructions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>📋 Để sử dụng đầy đủ các API, cần cấu hình:</h6>
+                        <ol>
+                            <li><strong>OpenWeatherMap API Key:</strong> 
+                                <ul>
+                                    <li>Đăng ký tại: <a href="https://openweathermap.org/api" target="_blank">openweathermap.org/api</a></li>
+                                    <li>Cập nhật <code>appsettings.json</code> → <code>ExternalAPIs:OpenWeatherMap:ApiKey</code></li>
+                                </ul>
+                            </li>
+                            <li><strong>SendGrid API Key (cho email notifications):</strong>
+                                <ul>
+                                    <li>Đăng ký tại: <a href="https://sendgrid.com" target="_blank">sendgrid.com</a> (100 emails/day FREE)</li>
+                                    <li>Cập nhật <code>appsettings.json</code> → <code>ExternalAPIs:SendGrid:ApiKey</code></li>
+                                </ul>
+                            </li>
+                            <li><strong>Browser Notifications:</strong> Không cần setup, sẵn sàng sử dụng!</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Weather API Tests
+        async function testWeatherCoordinates() {
+            updateStatus('weather-coord-status', 'loading');
+            try {
+                const response = await fetch('/api/Weather/coordinates?latitude=21.0285&longitude=105.8542');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayWeatherResult(data.data);
+                    updateStatus('weather-coord-status', 'success');
+                } else {
+                    throw new Error(data.message || 'API call failed');
+                }
+            } catch (error) {
+                console.error('Weather API Error:', error);
+                updateStatus('weather-coord-status', 'error');
+                alert('Weather API Error: ' + error.message);
+            }
+        }
+
+        async function testWeatherCity() {
+            const city = document.getElementById('cityInput').value;
+            if (!city) {
+                alert('Vui lòng nhập tên thành phố');
+                return;
+            }
+
+            updateStatus('weather-city-status', 'loading');
+            try {
+                const response = await fetch(`/api/Weather/city/${encodeURIComponent(city)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayWeatherResult(data.data);
+                    updateStatus('weather-city-status', 'success');
+                } else {
+                    throw new Error(data.message || 'API call failed');
+                }
+            } catch (error) {
+                console.error('Weather API Error:', error);
+                updateStatus('weather-city-status', 'error');
+                alert('Weather API Error: ' + error.message);
+            }
+        }
+
+        function displayWeatherResult(weather) {
+            const resultDiv = document.getElementById('weatherResult');
+            resultDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <img src="${weather.iconUrl}" alt="${weather.description}" width="64" height="64">
+                    <div class="ms-3">
+                        <h5 class="mb-1">${weather.temperatureDisplay}</h5>
+                        <p class="mb-1">${weather.description}</p>
+                        <small>💧 ${weather.humidityDisplay} | 💨 ${weather.windSpeedDisplay}</small>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small><i class="fas fa-map-marker-alt"></i> ${weather.city}</small>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Geocoding API Tests
+        async function testGeocoding() {
+            const address = document.getElementById('addressInput').value;
+            if (!address) {
+                alert('Vui lòng nhập địa chỉ');
+                return;
+            }
+
+            updateStatus('geocoding-status', 'loading');
+            try {
+                const response = await fetch(`/api/Geocoding/coordinates?address=${encodeURIComponent(address)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayGeocodingResult('Address → Coordinates', {
+                        input: address,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        displayName: data.displayName
+                    });
+                    updateStatus('geocoding-status', 'success');
+                } else {
+                    throw new Error(data.message || 'Geocoding failed');
+                }
+            } catch (error) {
+                console.error('Geocoding Error:', error);
+                updateStatus('geocoding-status', 'error');
+                alert('Geocoding Error: ' + error.message);
+            }
+        }
+
+        async function testReverseGeocoding() {
+            updateStatus('reverse-geocoding-status', 'loading');
+            try {
+                const response = await fetch('/api/Geocoding/address?latitude=21.0285&longitude=105.8542');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayGeocodingResult('Coordinates → Address', {
+                        input: '21.0285, 105.8542',
+                        address: data.address,
+                        latitude: data.latitude,
+                        longitude: data.longitude
+                    });
+                    updateStatus('reverse-geocoding-status', 'success');
+                } else {
+                    throw new Error(data.message || 'Reverse geocoding failed');
+                }
+            } catch (error) {
+                console.error('Reverse Geocoding Error:', error);
+                updateStatus('reverse-geocoding-status', 'error');
+                alert('Reverse Geocoding Error: ' + error.message);
+            }
+        }
+
+        function displayGeocodingResult(title, data) {
+            const resultDiv = document.getElementById('geocodingResult');
+            resultDiv.innerHTML = `
+                <strong>${title}</strong><br>
+                <strong>Input:</strong> ${data.input}<br>
+                ${data.latitude ? `<strong>Latitude:</strong> ${data.latitude}<br>` : ''}
+                ${data.longitude ? `<strong>Longitude:</strong> ${data.longitude}<br>` : ''}
+                ${data.address ? `<strong>Address:</strong> ${data.address}<br>` : ''}
+                ${data.displayName ? `<strong>Display Name:</strong> ${data.displayName}` : ''}
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Notification Tests
+        async function testBrowserNotification() {
+            updateStatus('browser-notif-status', 'loading');
+            
+            try {
+                // Request permission
+                if (Notification.permission === 'default') {
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                        throw new Error('Notification permission denied');
+                    }
+                }
+
+                // Send notification
+                const notification = new Notification('WebHS Test Notification', {
+                    body: 'Browser notification system đang hoạt động!',
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico'
+                });
+
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                };
+
+                updateStatus('browser-notif-status', 'success');
+                displayNotificationResult('Browser notification sent successfully!');
+                
+            } catch (error) {
+                console.error('Browser Notification Error:', error);
+                updateStatus('browser-notif-status', 'error');
+                alert('Browser Notification Error: ' + error.message);
+            }
+        }
+
+        async function testEmailNotification() {
+            const email = document.getElementById('emailInput').value;
+            if (!email) {
+                alert('Vui lòng nhập email');
+                return;
+            }
+
+            updateStatus('email-notif-status', 'loading');
+            displayNotificationResult('Email notification feature sẽ được implement khi có SendGrid API key. Hiện tại chỉ là demo interface.');
+            updateStatus('email-notif-status', 'success');
+        }
+
+        function displayNotificationResult(message) {
+            const resultDiv = document.getElementById('notificationResult');
+            resultDiv.textContent = message;
+            resultDiv.style.display = 'block';
+        }
+
+        // Utility function
+        function updateStatus(elementId, status) {
+            const element = document.getElementById(elementId);
+            element.className = `status-indicator status-${status}`;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 WebHS API Demo Page Loaded');
+            console.log('Available APIs:');
+            console.log('- Weather API: /api/Weather/*');
+            console.log('- Geocoding API: /api/Geocoding/*');
+            console.log('- Notification System: Browser + Email');
+        });
+    </script>
+</body>
+</html>

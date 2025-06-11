@@ -1,0 +1,147 @@
+@using WebHSPromotionType = WebHS.Models.PromotionType
+@model WebHS.ViewModels.CreateReviewViewModel
+
+@{
+    ViewData["Title"] = "Đánh Giá Homestay";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Đánh Giá Homestay</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            @if(!string.IsNullOrEmpty(Model.HomestayImage))
+                            {
+                                <img src="@Model.HomestayImage" alt="@Model.HomestayName" class="img-fluid rounded">
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-home fa-3x text-muted"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h5>@Model.HomestayName</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-calendar-alt"></i>
+                                @Model.CheckInDate.ToString("dd/MM/yyyy") - @Model.CheckOutDate.ToString("dd/MM/yyyy")
+                            </p>
+                            <p class="text-muted">
+                                <i class="fas fa-moon"></i>
+                                @((Model.CheckOutDate - Model.CheckInDate).Days) đêm
+                            </p>
+                        </div>
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        <input asp-for="BookingId" type="hidden" />
+                        <input asp-for="HomestayId" type="hidden" />
+                        <input asp-for="HomestayName" type="hidden" />
+                        <input asp-for="CheckInDate" type="hidden" />
+                        <input asp-for="CheckOutDate" type="hidden" />
+
+                        <div class="form-group">
+                            <label for="rating" class="form-label">Đánh giá tổng thể *</label>
+                            <div class="rating-stars mb-2">
+                                @for(int i = 1; i <= 5; i++)
+                                {
+                                    <i class="fas fa-star rating-star" data-rating="@i" style="font-size: 2rem; color: #ddd; cursor: pointer; margin-right: 5px;"></i>
+                                }
+                            </div>
+                            <input asp-for="Rating" type="hidden" />
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Comment" class="form-label">Chia sẻ trải nghiệm của bạn *</label>
+                            <textarea asp-for="Comment" class="form-control" rows="6" placeholder="Hãy chia sẻ những trải nghiệm của bạn về homestay này..."></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                            <small class="form-text text-muted">Tối thiểu 10 ký tự, tối đa 1000 ký tự</small>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Gửi Đánh Giá
+                            </button>
+                            <a href="@Url.Action("Details", "Booking", new { id = Model.BookingId })" class="btn btn-secondary btn-lg ml-2">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Rating stars interaction
+            $('.rating-star').hover(
+                function() {
+                    var rating = $(this).data('rating');
+                    highlightStars(rating);
+                },
+                function() {
+                    var selectedRating = $('#Rating').val();
+                    highlightStars(selectedRating);
+                }
+            );
+
+            $('.rating-star').click(function() {
+                var rating = $(this).data('rating');
+                $('#Rating').val(rating);
+                highlightStars(rating);
+            });
+
+            function highlightStars(rating) {
+                $('.rating-star').each(function() {
+                    var starRating = $(this).data('rating');
+                    if (starRating <= rating) {
+                        $(this).css('color', '#ffc107');
+                    } else {
+                        $(this).css('color', '#ddd');
+                    }
+                });
+            }
+
+            // Character counter for comment
+            $('#Comment').on('input', function() {
+                var length = $(this).val().length;
+                var remaining = 1000 - length;
+                
+                if (!$('.char-counter').length) {
+                    $(this).after('<small class="form-text text-muted char-counter"></small>');
+                }
+                
+                $('.char-counter').text(length + '/1000 ký tự');
+                
+                if (remaining < 0) {
+                    $('.char-counter').addClass('text-danger').removeClass('text-muted');
+                } else {
+                    $('.char-counter').addClass('text-muted').removeClass('text-danger');
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .rating-stars {
+            display: flex;
+            align-items: center;
+        }
+        
+        .rating-star:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
+    </style>
+}
+

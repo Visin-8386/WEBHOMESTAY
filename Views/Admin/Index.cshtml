@@ -1,0 +1,324 @@
+@using WebHSPromotionType = WebHS.Models.PromotionType
+@using WebHSBookingStatus = WebHS.Models.BookingStatus
+@model WebHS.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">
+                        <i class="fas fa-cog me-2"></i>Admin Panel
+                    </h5>
+                    <div class="list-group list-group-flush">
+                        <a asp-action="Index" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-chart-bar me-2"></i>Dashboard
+                        </a>
+                        <a asp-action="Users" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users me-2"></i>Quản lý người dùng
+                        </a>
+                        <a asp-action="Homestays" class="list-group-item list-group-item-action">
+                            <i class="fas fa-home me-2"></i>Quản lý Homestay
+                        </a>
+                        <a asp-action="Bookings" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calendar-check me-2"></i>Quản lý đặt phòng
+                        </a>
+                        <a asp-action="Reports" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-pie me-2"></i>Báo cáo
+                        </a>
+                        <hr>
+                        <button type="button" class="list-group-item list-group-item-action text-warning" onclick="createRevenueTestData()">
+                            <i class="fas fa-database me-2"></i>Tạo dữ liệu test doanh thu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-primary text-white shadow">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="h5 mb-0">@Model.TotalUsers</div>
+                                    <div class="text-white-50 small">Tổng người dùng</div>
+                                </div>
+                                <div class="fa-3x opacity-25">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <a asp-action="Users" class="card-footer text-white d-flex align-items-center justify-content-between text-decoration-none">
+                            <span class="small">Xem chi tiết</span>
+                            <div class="small"><i class="fas fa-angle-right"></i></div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-success text-white shadow">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="h5 mb-0">@Model.TotalHomestays</div>
+                                    <div class="text-white-50 small">Tổng Homestay</div>
+                                </div>
+                                <div class="fa-3x opacity-25">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <a asp-action="Homestays" class="card-footer text-white d-flex align-items-center justify-content-between text-decoration-none">
+                            <span class="small">Xem chi tiết</span>
+                            <div class="small"><i class="fas fa-angle-right"></i></div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-info text-white shadow">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="h5 mb-0">@Model.TotalBookings</div>
+                                    <div class="text-white-50 small">Tổng đặt phòng</div>
+                                </div>
+                                <div class="fa-3x opacity-25">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <a asp-action="Bookings" class="card-footer text-white d-flex align-items-center justify-content-between text-decoration-none">
+                            <span class="small">Xem chi tiết</span>
+                            <div class="small"><i class="fas fa-angle-right"></i></div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-warning text-white shadow">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="h5 mb-0">@Model.TotalRevenue.ToString("N0")</div>
+                                    <div class="text-white-50 small">Tổng doanh thu (VNĐ)</div>
+                                </div>
+                                <div class="fa-3x opacity-25">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <a asp-action="Reports" class="card-footer text-white d-flex align-items-center justify-content-between text-decoration-none">
+                            <span class="small">Xem báo cáo</span>
+                            <div class="small"><i class="fas fa-angle-right"></i></div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.PendingHomestays > 0)
+            {
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>
+                        Có <strong>@Model.PendingHomestays</strong> homestay đang chờ phê duyệt.
+                        <a asp-action="Homestays" asp-route-status="pending" class="alert-link">Xem ngay</a>
+                    </div>
+                </div>
+            }
+
+            <div class="row">
+                <!-- Recent Users -->
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-plus me-2"></i>Người dùng mới
+                                </h5>
+                                <a asp-action="Users" class="btn btn-outline-primary btn-sm">Xem tất cả</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.RecentUsers.Any())
+                            {
+                                @foreach (var user in Model.RecentUsers)
+                                {
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="/images/default-avatar.jpg" class="rounded-circle me-3" width="40" height="40">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">@user.FirstName @user.LastName</h6>
+                                            <small class="text-muted">@user.Email</small>
+                                        </div>
+                                        <small class="text-muted">@user.CreatedAt.ToString("dd/MM")</small>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted text-center">Không có người dùng mới</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Bookings -->
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i>Đặt phòng gần đây
+                                </h5>
+                                <a asp-action="Bookings" class="btn btn-outline-primary btn-sm">Xem tất cả</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.RecentBookings.Any())
+                            {
+                                @foreach (var booking in Model.RecentBookings.Take(5))
+                                {
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <h6 class="mb-0">@booking.Homestay.Name</h6>
+                                            <small class="text-muted">@booking.User.FirstName @booking.User.LastName</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-@GetStatusColor(booking.Status)">
+                                                @GetStatusText(booking.Status)
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">@booking.CreatedAt.ToString("dd/MM")</small>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted text-center">Không có đặt phòng mới</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>Doanh thu 6 tháng gần đây
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenueChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Revenue Chart
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.RevenueChartLabels)),
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: @Html.Raw(Json.Serialize(Model.RevenueChartData)),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('vi-VN') + ' VNĐ';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function createRevenueTestData() {
+            if (confirm('Bạn có chắc chắn muốn tạo dữ liệu test doanh thu không? Điều này sẽ tạo 5 booking test với tổng doanh thu khoảng 30 triệu VND.')) {
+                // Gửi yêu cầu đến server để tạo dữ liệu test
+                fetch('@Url.Action("CreateRevenueTestData", "Admin")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ ' + data.message);
+                        location.reload();
+                    } else {
+                        alert('❌ ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã xảy ra lỗi khi tạo dữ liệu test doanh thu.');
+                });
+            }
+        }
+    </script>
+}
+
+@functions {
+    private string GetStatusColor(WebHSBookingStatus status)
+    {
+        return status switch
+        {
+            WebHSBookingStatus.Pending => "warning",
+            WebHSBookingStatus.Confirmed => "success",
+            WebHSBookingStatus.CheckedIn => "info",
+            WebHSBookingStatus.CheckedOut => "primary",
+            WebHSBookingStatus.Cancelled => "danger",
+            _ => "secondary"
+        };
+    }
+    
+    private string GetStatusText(WebHSBookingStatus status)
+    {
+        return status switch
+        {
+            WebHSBookingStatus.Pending => "Chờ xác nhận",
+            WebHSBookingStatus.Confirmed => "Đã xác nhận",
+            WebHSBookingStatus.CheckedIn => "Đã checkin",
+            WebHSBookingStatus.CheckedOut => "Đã checkout",
+            WebHSBookingStatus.Cancelled => "Đã hủy",
+            _ => "Không xác định"
+        };
+    }
+}
+
