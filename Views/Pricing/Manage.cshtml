@@ -115,11 +115,20 @@
                                                 }
                                             </td>
                                             <td>
-                                                <small class="text-muted">@(rule.UpdatedAt?.ToString("MMM dd, HH:mm") ?? rule.CreatedAt.ToString("MMM dd, HH:mm"))</small>
+                                                <small class="text-muted">
+                                                    @if (rule.UpdatedAt != rule.CreatedAt)
+                                                    {
+                                                        @rule.UpdatedAt.ToString("MMM dd, HH:mm")
+                                                    }
+                                                    else
+                                                    {
+                                                        @rule.CreatedAt.ToString("MMM dd, HH:mm")
+                                                    }
+                                                </small>
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-outline-primary" onclick="editPrice('@rule.Date.ToString("yyyy-MM-dd")', @rule.PricePerNight, '@(rule.Note ?? "")')">
+                                                    <button class="btn btn-outline-primary" onclick="editPrice('@rule.Date.ToString("yyyy-MM-dd")', @rule.PricePerNight, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(rule.Note ?? string.Empty))')">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
                                                     <button class="btn btn-outline-danger" onclick="removePrice('@rule.Date.ToString("yyyy-MM-dd")')">

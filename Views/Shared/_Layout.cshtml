@@ -43,10 +43,18 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Homestay" asp-action="Index">Danh sách Homestay</a>
-                        </li>
-                        <li class="nav-item">
+                        </li>                        <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Review" asp-action="AllReviews">Đánh giá</a>
                         </li>
+                        @if (User.Identity!.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Messaging" asp-action="Index">
+                                    <i class="fas fa-comments"></i> Tin nhắn
+                                    <span id="unread-messages-badge" class="badge bg-danger ms-1" style="display: none;">0</span>
+                                </a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="About">Về Chúng Tôi</a>
                         </li>
@@ -68,12 +76,16 @@
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     Quản trị
-                                </a>
-                                <ul class="dropdown-menu">
+                                </a>                                <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">Dashboard Admin</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Quản lý người dùng</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Homestays">Quản lý Homestay</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Bookings">Quản lý đặt phòng</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Promotion" asp-action="Index">Quản lý khuyến mãi</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Messaging" asp-action="AdminRequests">
+                                        <i class="fas fa-envelope me-2"></i>Yêu cầu nhắn tin
+                                        <span id="admin-requests-badge" class="badge bg-warning ms-1" style="display: none;">0</span>
+                                    </a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Reports">Báo cáo</a></li>
                                 </ul>
                             </li>
@@ -99,9 +111,19 @@
                                         }
                                     }
                                     <span class="badge @badgeClass ms-1">@userRole</span>
-                                </a><ul class="dropdown-menu">
+                                </a>                                <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Thông tin cá nhân</a></li>
                                     <li><a class="dropdown-item" asp-controller="Booking" asp-action="MyBookings">Booking của tôi</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Messaging" asp-action="Index">
+                                        <i class="fas fa-comments me-2"></i>Tin nhắn
+                                        <span id="unreadMessagesCount" class="badge bg-danger ms-1" style="display: none;"></span>
+                                    </a></li>
+                                    @if (!User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="requestAdminMessage()">
+                                            <i class="fas fa-headset me-2"></i>Nhắn tin với Admin
+                                        </a></li>
+                                    }
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form method="post" asp-controller="Account" asp-action="Logout">
@@ -173,13 +195,126 @@
             <hr class="my-3">
             <div class="text-center">
                 <small>&copy; 2024 - Homestay Booking - All rights reserved</small>
+            </div>        </div>
+    </footer>
+    
+    <!-- Admin Message Request Modal -->
+    @if (User.Identity!.IsAuthenticated && !User.IsInRole("Admin"))
+    {
+        <div class="modal fade" id="adminMessageModal" tabindex="-1" aria-labelledby="adminMessageModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="adminMessageModalLabel">
+                            <i class="fas fa-headset me-2"></i>Nhắn tin với Admin
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="adminMessageText" class="form-label">Tin nhắn cho Admin:</label>
+                            <textarea class="form-control" id="adminMessageText" rows="4" placeholder="Nhập câu hỏi hoặc yêu cầu hỗ trợ của bạn..."></textarea>
+                            <div class="form-text">Admin sẽ nhận được thông báo và phản hồi bạn sớm nhất có thể.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="sendAdminMessageRequest()">
+                            <i class="fas fa-paper-plane me-2"></i>Gửi yêu cầu
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    }<script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    @if (User.Identity!.IsAuthenticated)
+    {
+        <script>            // Check for unread messages
+            function checkUnreadMessages() {
+                $.get('@Url.Action("GetUnreadCount", "Messaging")', function(response) {
+                    if (response.success && response.count > 0) {
+                        $('#unreadMessagesCount').text(response.count).show();
+                        $('#unread-messages-badge').text(response.count).show();
+                    } else {
+                        $('#unreadMessagesCount').hide();
+                        $('#unread-messages-badge').hide();
+                    }
+                });
+            }
+            
+            @if (User.IsInRole("Admin"))
+            {
+                <text>
+                // Check for admin message requests
+                function checkAdminRequests() {
+                    $.get('@Url.Action("GetAdminMessageRequests", "Messaging")', function(response) {
+                        if (response.success && response.requests.length > 0) {
+                            $('#admin-requests-badge').text(response.requests.length).show();
+                        } else {
+                            $('#admin-requests-badge').hide();
+                        }
+                    });
+                }
+                </text>
+            }            // Check on page load
+            $(document).ready(function() {
+                checkUnreadMessages();
+                @if (User.IsInRole("Admin"))
+                {
+                    <text>checkAdminRequests();</text>
+                }
+                
+                // Check every 30 seconds
+                setInterval(checkUnreadMessages, 30000);
+                @if (User.IsInRole("Admin"))
+                {
+                    <text>setInterval(checkAdminRequests, 30000);</text>
+                }
+            });
+            
+            // Admin messaging functions
+            function requestAdminMessage() {
+                $('#adminMessageModal').modal('show');
+            }
+            
+            function sendAdminMessageRequest() {
+                const message = document.getElementById('adminMessageText').value.trim();
+                
+                if (!message) {
+                    alert('Vui lòng nhập tin nhắn');
+                    return;
+                }
+                
+                fetch('@Url.Action("RequestAdminMessage", "Messaging")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        $('#adminMessageModal').modal('hide');
+                        document.getElementById('adminMessageText').value = '';
+                        alert('Yêu cầu nhắn tin đã được gửi tới Admin. Bạn sẽ nhận được phản hồi sớm!');
+                    } else {
+                        alert('Có lỗi xảy ra: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi gửi yêu cầu');
+                });
+            }
+        </script>
+    }
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,561 @@
+@model WebHS.ViewModels.MessagingIndexViewModel
+@{
+    ViewData["Title"] = "Tin nhắn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Sidebar - Danh sách cuộc trò chuyện -->
+        <div class="col-md-4 col-lg-3 p-0">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comments me-2"></i>
+                            Tin nhắn
+                        </h5>
+                        @if (Model.HasUnreadMessages)
+                        {
+                            <span class="badge bg-danger">@Model.TotalUnreadCount</span>
+                        }
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                            <i class="fas fa-plus me-1"></i>
+                            Cuộc trò chuyện mới
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                    <div id="conversationsList">
+                        @if (Model.Conversations.Any())
+                        {
+                            @foreach (var conversation in Model.Conversations)
+                            {
+                                <div class="conversation-item @(Model.ActiveConversation?.Id == conversation.Id ? "active" : "")" 
+                                     data-conversation-id="@conversation.Id"
+                                     onclick="loadConversation(@conversation.Id)">
+                                    <div class="d-flex p-3 border-bottom">
+                                        <div class="flex-shrink-0">
+                                            <img src="@conversation.ParticipantAvatar" 
+                                                 class="rounded-circle" 
+                                                 width="50" height="50" 
+                                                 alt="@conversation.ParticipantName">
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="mb-0">@conversation.ParticipantName</h6>
+                                                <small class="text-muted">
+                                                    @conversation.LastMessageAt.ToString("HH:mm")
+                                                </small>
+                                            </div>
+                                            <small class="text-muted">@conversation.ParticipantRole</small>
+                                            @if (!string.IsNullOrEmpty(conversation.Subject))
+                                            {
+                                                <div class="text-primary small">@conversation.Subject</div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(conversation.LastMessage))
+                                            {
+                                                <p class="mb-0 small text-truncate">
+                                                    @if (conversation.LastMessageSenderId == Model.CurrentUserId)
+                                                    {
+                                                        <span class="text-muted">Bạn: </span>
+                                                    }
+                                                    @conversation.LastMessage
+                                                </p>
+                                            }
+                                            @if (conversation.HasUnreadMessages)
+                                            {
+                                                <span class="badge bg-danger small">@conversation.UnreadCount</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-4 text-center text-muted">
+                                <i class="fas fa-comment-slash fa-3x mb-3"></i>
+                                <p>Chưa có cuộc trò chuyện nào</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                                    Bắt đầu trò chuyện
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="col-md-8 col-lg-9 p-0">
+            @if (Model.ActiveConversation != null)
+            {
+                <div class="card h-100 border-0 rounded-0">
+                    <!-- Chat header -->
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <img src="@Model.ActiveConversation.ParticipantAvatar" 
+                                     class="rounded-circle me-3" 
+                                     width="40" height="40" 
+                                     alt="@Model.ActiveConversation.ParticipantName">
+                                <div>
+                                    <h6 class="mb-0">@Model.ActiveConversation.ParticipantName</h6>
+                                    <small class="text-muted">@Model.ActiveConversation.ParticipantRole</small>
+                                    @if (!string.IsNullOrEmpty(Model.ActiveConversation.Subject))
+                                    {
+                                        <div class="text-primary small">@Model.ActiveConversation.Subject</div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="archiveConversation(@Model.ActiveConversation.Id)">
+                                        <i class="fas fa-archive me-2"></i>Lưu trữ
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Messages area -->
+                    <div class="card-body" style="height: 400px; overflow-y: auto;" id="messagesContainer">
+                        <div id="messagesList">
+                            @foreach (var message in Model.Messages)
+                            {
+                                <div class="message-item @(message.IsSentByCurrentUser ? "sent" : "received")" data-message-id="@message.Id">
+                                    <div class="d-flex @(message.IsSentByCurrentUser ? "justify-content-end" : "justify-content-start") mb-3">
+                                        @if (!message.IsSentByCurrentUser)
+                                        {
+                                            <img src="@message.SenderAvatar" class="rounded-circle me-2" width="35" height="35" alt="@message.SenderName">
+                                        }
+                                        <div class="message-bubble @(message.IsSentByCurrentUser ? "bg-primary text-white" : "bg-light")">
+                                            @if (message.Type == MessageType.Image && !string.IsNullOrEmpty(message.AttachmentUrl))
+                                            {
+                                                <img src="@message.AttachmentUrl" class="img-fluid rounded mb-2" style="max-width: 200px;" alt="Image">
+                                            }
+                                            @if (message.Type == MessageType.File && !string.IsNullOrEmpty(message.AttachmentUrl))
+                                            {
+                                                <div class="file-attachment mb-2">
+                                                    <a href="@message.AttachmentUrl" target="_blank" class="text-decoration-none">
+                                                        <i class="fas fa-file me-2"></i>@message.AttachmentFileName
+                                                    </a>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(message.Content))
+                                            {
+                                                <div>@message.Content</div>
+                                            }
+                                            <small class="d-block mt-1 @(message.IsSentByCurrentUser ? "text-white-50" : "text-muted")">
+                                                @message.SentAt.ToString("HH:mm")
+                                                @if (message.IsSentByCurrentUser && message.IsRead)
+                                                {
+                                                    <i class="fas fa-check-double ms-1"></i>
+                                                }
+                                            </small>
+                                        </div>
+                                        @if (message.IsSentByCurrentUser)
+                                        {
+                                            <div class="dropdown ms-2">
+                                                <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="#" onclick="deleteMessage(@message.Id)">
+                                                        <i class="fas fa-trash me-2"></i>Xóa
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Message input -->
+                    <div class="card-footer">
+                        <form id="messageForm" enctype="multipart/form-data">
+                            <input type="hidden" name="ReceiverId" value="@Model.ActiveConversation.ParticipantId" />
+                            <input type="hidden" name="ConversationId" value="@Model.ActiveConversation.Id" />
+                            @if (Model.ActiveConversation.HomestayId.HasValue)
+                            {
+                                <input type="hidden" name="HomestayId" value="@Model.ActiveConversation.HomestayId" />
+                            }
+                            @if (Model.ActiveConversation.BookingId.HasValue)
+                            {
+                                <input type="hidden" name="BookingId" value="@Model.ActiveConversation.BookingId" />
+                            }
+                            
+                            <div class="input-group">
+                                <input type="file" name="Attachment" id="fileInput" class="d-none" accept="image/*,.pdf,.doc,.docx,.txt">
+                                <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <input type="text" name="Content" id="messageInput" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-comments fa-4x mb-3"></i>
+                        <h4>Chọn một cuộc trò chuyện</h4>
+                        <p>Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo cuộc trò chuyện mới -->
+<div class="modal fade" id="newMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cuộc trò chuyện mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newMessageForm">
+                    <div class="mb-3">
+                        <label class="form-label">Tìm người dùng</label>
+                        <input type="text" id="userSearch" class="form-control" placeholder="Nhập tên hoặc email...">
+                        <div id="searchResults" class="mt-2"></div>
+                    </div>
+                    <div class="mb-3" id="selectedUserDiv" style="display: none;">
+                        <label class="form-label">Người nhận</label>
+                        <div id="selectedUser" class="p-2 bg-light rounded"></div>
+                        <input type="hidden" id="selectedUserId" name="WithUserId">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tin nhắn đầu tiên</label>
+                        <textarea name="InitialMessage" class="form-control" rows="3" placeholder="Nhập tin nhắn..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="startConversation()">Bắt đầu trò chuyện</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .conversation-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .conversation-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .conversation-item.active {
+            background-color: #e3f2fd;
+            border-right: 3px solid #2196f3;
+        }
+        
+        .message-bubble {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .message-item.sent .message-bubble {
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-item.received .message-bubble {
+            border-bottom-left-radius: 4px;
+        }
+        
+        #messagesContainer {
+            background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+                        linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+                        linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        
+        .user-search-item {
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        
+        .user-search-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .file-attachment {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        let currentConversationId = @(Model.ActiveConversation?.Id ?? 0);
+        
+        // Load conversation
+        function loadConversation(conversationId) {
+            window.location.href = '@Url.Action("Index", "Messaging")?conversationId=' + conversationId;
+        }
+        
+        // Send message
+        $('#messageForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const messageContent = $('#messageInput').val().trim();
+            const hasFile = $('#fileInput')[0].files.length > 0;
+            
+            if (!messageContent && !hasFile) {
+                return;
+            }
+            
+            const url = hasFile ? '@Url.Action("SendMessageWithFile", "Messaging")' : '@Url.Action("SendMessage", "Messaging")';
+            
+            if (hasFile) {
+                // Send with file
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            appendMessage(response.message);
+                            $('#messageInput').val('');
+                            $('#fileInput').val('');
+                            scrollToBottom();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    }
+                });
+            } else {
+                // Send text only
+                const data = {
+                    ReceiverId: $('input[name="ReceiverId"]').val(),
+                    Content: messageContent,
+                    ConversationId: $('input[name="ConversationId"]').val(),
+                    HomestayId: $('input[name="HomestayId"]').val() || null,
+                    BookingId: $('input[name="BookingId"]').val() || null
+                };
+                
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        if (response.success) {
+                            appendMessage(response.message);
+                            $('#messageInput').val('');
+                            scrollToBottom();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Append new message to chat
+        function appendMessage(message) {
+            const messageHtml = createMessageHtml(message);
+            $('#messagesList').append(messageHtml);
+        }
+        
+        // Create message HTML
+        function createMessageHtml(message) {
+            const isSent = message.isSentByCurrentUser;
+            const alignClass = isSent ? 'justify-content-end' : 'justify-content-start';
+            const bubbleClass = isSent ? 'bg-primary text-white' : 'bg-light';
+            const timeClass = isSent ? 'text-white-50' : 'text-muted';
+            
+            let contentHtml = '';
+            if (message.type === 1 && message.attachmentUrl) { // Image
+                contentHtml += `<img src="${message.attachmentUrl}" class="img-fluid rounded mb-2" style="max-width: 200px;" alt="Image">`;
+            }
+            if (message.type === 2 && message.attachmentUrl) { // File
+                contentHtml += `<div class="file-attachment mb-2"><a href="${message.attachmentUrl}" target="_blank" class="text-decoration-none"><i class="fas fa-file me-2"></i>${message.attachmentFileName}</a></div>`;
+            }
+            if (message.content) {
+                contentHtml += `<div>${message.content}</div>`;
+            }
+            
+            const avatarHtml = !isSent ? `<img src="${message.senderAvatar}" class="rounded-circle me-2" width="35" height="35" alt="${message.senderName}">` : '';
+            const readIndicator = isSent && message.isRead ? '<i class="fas fa-check-double ms-1"></i>' : '';
+            
+            return `
+                <div class="message-item ${isSent ? 'sent' : 'received'}" data-message-id="${message.id}">
+                    <div class="d-flex ${alignClass} mb-3">
+                        ${avatarHtml}
+                        <div class="message-bubble ${bubbleClass}">
+                            ${contentHtml}
+                            <small class="d-block mt-1 ${timeClass}">
+                                ${new Date(message.sentAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}
+                                ${readIndicator}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Scroll to bottom
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Delete message
+        function deleteMessage(messageId) {
+            if (confirm('Bạn có chắc muốn xóa tin nhắn này?')) {
+                $.post('@Url.Action("DeleteMessage", "Messaging")', { messageId: messageId }, function(response) {
+                    if (response.success) {
+                        $(`[data-message-id="${messageId}"]`).remove();
+                    }
+                });
+            }
+        }
+        
+        // Archive conversation
+        function archiveConversation(conversationId) {
+            if (confirm('Bạn có chắc muốn lưu trữ cuộc trò chuyện này?')) {
+                $.post('@Url.Action("ArchiveConversation", "Messaging")', { conversationId: conversationId }, function(response) {
+                    if (response.success) {
+                        window.location.href = '@Url.Action("Index", "Messaging")';
+                    }
+                });
+            }
+        }
+        
+        // User search
+        $('#userSearch').on('input', function() {
+            const term = $(this).val().trim();
+            if (term.length < 2) {
+                $('#searchResults').empty();
+                return;
+            }
+            
+            $.get('@Url.Action("SearchUsers", "Messaging")', { term: term }, function(response) {
+                if (response.success) {
+                    displaySearchResults(response.users);
+                }
+            });
+        });
+        
+        // Display search results
+        function displaySearchResults(users) {
+            const resultsHtml = users.map(user => `
+                <div class="user-search-item" onclick="selectUser('${user.id}', '${user.name}', '${user.role}', '${user.avatar}')">
+                    <div class="d-flex align-items-center">
+                        <img src="${user.avatar}" class="rounded-circle me-2" width="30" height="30" alt="${user.name}">
+                        <div>
+                            <div class="fw-bold">${user.name}</div>
+                            <small class="text-muted">${user.role} - ${user.email}</small>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            $('#searchResults').html(resultsHtml);
+        }
+        
+        // Select user
+        function selectUser(id, name, role, avatar) {
+            $('#selectedUserId').val(id);
+            $('#selectedUser').html(`
+                <div class="d-flex align-items-center">
+                    <img src="${avatar}" class="rounded-circle me-2" width="30" height="30" alt="${name}">
+                    <div>
+                        <div class="fw-bold">${name}</div>
+                        <small class="text-muted">${role}</small>
+                    </div>
+                </div>
+            `);
+            $('#selectedUserDiv').show();
+            $('#searchResults').empty();
+            $('#userSearch').val('');
+        }
+        
+        // Start conversation
+        function startConversation() {
+            const userId = $('#selectedUserId').val();
+            const message = $('textarea[name="InitialMessage"]').val().trim();
+            
+            if (!userId) {
+                alert('Vui lòng chọn người nhận');
+                return;
+            }
+            
+            if (!message) {
+                alert('Vui lòng nhập tin nhắn');
+                return;
+            }
+            
+            const data = {
+                ReceiverId: userId,
+                Content: message
+            };
+            
+            $.ajax({
+                url: '@Url.Action("SendMessage", "Messaging")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        $('#newMessageModal').modal('hide');
+                        window.location.reload();
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                }
+            });
+        }
+        
+        // Auto scroll to bottom on page load
+        $(document).ready(function() {
+            scrollToBottom();
+            
+            // Mark messages as read
+            if (currentConversationId > 0) {
+                $.post('@Url.Action("MarkAsRead", "Messaging")', { conversationId: currentConversationId });
+            }
+        });
+        
+        // Enter key to send message
+        $('#messageInput').on('keypress', function(e) {
+            if (e.which === 13 && !e.shiftKey) {
+                e.preventDefault();
+                $('#messageForm').submit();
+            }
+        });
+    </script>
+}

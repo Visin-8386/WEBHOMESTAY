@@ -11,6 +11,10 @@
             <div class="card">                <div class="card-header">
                     <h3 class="card-title">Quản Lý Người Dùng</h3>
                     <div class="card-tools">
+                        <!-- Excel Export Button -->
+                        <a href="@Url.Action("ExportUsersToExcel")" class="btn btn-success btn-sm mr-2" title="Xuất Excel">
+                            <i class="fas fa-file-excel"></i> Xuất Excel
+                        </a>
                         <form method="get" action="@Url.Action("Users")" class="d-flex">
                             <div class="input-group input-group-sm mr-2">                                <select name="role" class="form-control">
                                     <option value="">-- Tất cả vai trò --</option>

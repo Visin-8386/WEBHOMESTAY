@@ -2,14 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebHS.Data;
 using WebHS.Services;
 using WebHS.ViewModels;
 using WebHS.Models;
-using WebHS.Data;
-using WebHSPromotionType = WebHS.Models.PromotionType;
-using WebHSPromotion = WebHS.Models.Promotion;
-using WebHSUser = WebHS.Models.User;
 using WebHSUserRoles = WebHS.Models.UserRoles;
+using WebHSUser = WebHS.Models.User;
 
 namespace WebHS.Controllers
 {
@@ -20,17 +18,20 @@ namespace WebHS.Controllers
         private readonly IBookingService _bookingService;
         private readonly UserManager<WebHSUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IExcelExportService _excelExportService;
 
         public HostController(
             IHomestayService homestayService,
             IBookingService bookingService,
             UserManager<WebHSUser> userManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IExcelExportService excelExportService)
         {
             _homestayService = homestayService;
             _bookingService = bookingService;
             _userManager = userManager;
             _context = context;
+            _excelExportService = excelExportService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -85,10 +86,11 @@ namespace WebHS.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ManageBookings(int page = 1)
+        public async Task<IActionResult> ManageBookings(string status = "all", int page = 1)
         {
             var userId = _userManager.GetUserId(User)!;
-            var bookings = await _bookingService.GetHostBookingsAsync(userId, "all", page);
+            var bookings = await _bookingService.GetHostBookingsAsync(userId, status, page);
+            ViewBag.Status = status;
             return View("Bookings", bookings);
         }
 
@@ -129,15 +131,10 @@ namespace WebHS.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Bookings(string status = "all", int page = 1)
+        public IActionResult Bookings(string status = "all", int page = 1)
         {
-            var userId = _userManager.GetUserId(User)!;
-            
-            // Get bookings for host's homestays using the existing service
-            var bookings = await _bookingService.GetHostBookingsAsync(userId, status, page);
-            
-            ViewBag.Status = status;
-            return View(bookings);
+            // Redirect to the main ManageBookings action to maintain URL consistency
+            return RedirectToAction(nameof(ManageBookings), new { status, page });
         }
 
         [HttpGet]
@@ -182,14 +179,40 @@ namespace WebHS.Controllers
         {
             var userId = _userManager.GetUserId(User)!;
             
-            // For host controller, we need to check if the booking belongs to this host's homestay
-            var booking = await _bookingService.GetHostBookingsAsync(userId, "all", 1);
-            var targetBooking = booking.Bookings.FirstOrDefault(b => b.Id == id);
+            // FIXED: Query specific booking directly instead of pagination search
+            var booking = await _context.Bookings
+                .Include(b => b.Homestay)
+                    .ThenInclude(h => h.Images)
+                .Include(b => b.User)
+                .FirstOrDefaultAsync(b => b.Id == id && b.Homestay.HostId == userId);
             
-            if (targetBooking == null)
+            if (booking == null)
                 return NotFound();
 
-            return PartialView("_BookingDetailPartial", targetBooking);
+            // Convert to BookingDetailViewModel for the partial view
+            var bookingDetail = new BookingDetailViewModel
+            {
+                Id = booking.Id,
+                CheckInDate = booking.CheckInDate,
+                CheckOutDate = booking.CheckOutDate,
+                NumberOfGuests = booking.NumberOfGuests,
+                FinalAmount = booking.FinalAmount,
+                Status = booking.Status,
+                TotalAmount = booking.TotalAmount,
+                DiscountAmount = booking.DiscountAmount,
+                Booking = booking,
+                HomestayName = booking.Homestay.Name,
+                HomestayLocation = $"{booking.Homestay.City}, {booking.Homestay.State}",
+                PrimaryImage = booking.Homestay.Images.FirstOrDefault()?.ImageUrl ?? "/images/placeholder-homestay.svg",
+                UserName = $"{booking.User.FirstName} {booking.User.LastName}",
+                UserEmail = booking.User.Email ?? "",
+                UserPhone = booking.User.PhoneNumber ?? "",
+                CanReview = false,
+                CanCancel = booking.Status == BookingStatus.Pending,
+                HomestayImage = booking.Homestay.Images.FirstOrDefault()?.ImageUrl ?? "/images/placeholder-homestay.svg"
+            };
+
+            return PartialView("_BookingDetailPartial", bookingDetail);
         }
 
         [HttpPost]
@@ -299,6 +322,147 @@ namespace WebHS.Controllers
                 return Json(new { success = false, message = "Có lỗi xảy ra." });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> BookingDetail(int id)
+        {
+            var userId = _userManager.GetUserId(User)!;
+            
+            var booking = await _context.Bookings
+                .Include(b => b.Homestay)
+                    .ThenInclude(h => h.Images)
+                .Include(b => b.User)
+                .FirstOrDefaultAsync(b => b.Id == id && b.Homestay.HostId == userId);
+            
+            if (booking == null)
+                return NotFound();
+
+            var bookingDetail = new BookingDetailViewModel
+            {
+                Id = booking.Id,
+                CheckInDate = booking.CheckInDate,
+                CheckOutDate = booking.CheckOutDate,
+                NumberOfGuests = booking.NumberOfGuests,
+                FinalAmount = booking.FinalAmount,
+                Status = booking.Status,
+                TotalAmount = booking.TotalAmount,
+                DiscountAmount = booking.DiscountAmount,
+                Booking = booking,
+                HomestayName = booking.Homestay.Name,
+                HomestayLocation = $"{booking.Homestay.City}, {booking.Homestay.State}",
+                PrimaryImage = booking.Homestay.Images.FirstOrDefault()?.ImageUrl ?? "/images/placeholder-homestay.svg",
+                UserName = $"{booking.User.FirstName} {booking.User.LastName}",
+                UserEmail = booking.User.Email ?? "",
+                UserPhone = booking.User.PhoneNumber ?? "",
+                CanReview = false,
+                CanCancel = booking.Status == BookingStatus.Pending,
+                HomestayImage = booking.Homestay.Images.FirstOrDefault()?.ImageUrl ?? "/images/placeholder-homestay.svg"
+            };
+
+            return View("BookingDetail", bookingDetail);
+        }
+
+        // EXCEL EXPORT ACTIONS
+        [HttpGet]
+        public async Task<IActionResult> ExportHomestaysToExcel()
+        {
+            try
+            {
+                var hostId = _userManager.GetUserId(User);
+                var homestays = await _context.Homestays
+                    .Include(h => h.Host)
+                    .Where(h => h.HostId == hostId)
+                    .ToListAsync();
+                var excelData = _excelExportService.ExportHomestaysToExcel(homestays);
+                
+                var fileName = $"Homestay_CuaToi_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportBookingsToExcel()
+        {
+            try
+            {
+                var hostId = _userManager.GetUserId(User);
+                var hostHomestayIds = await _context.Homestays
+                    .Where(h => h.HostId == hostId)
+                    .Select(h => h.Id)
+                    .ToListAsync();
+
+                var bookings = await _context.Bookings
+                    .Include(b => b.User)
+                    .Include(b => b.Homestay)
+                    .Where(b => hostHomestayIds.Contains(b.HomestayId))
+                    .ToListAsync();
+                
+                var excelData = _excelExportService.ExportBookingsToExcel(bookings);
+                
+                var fileName = $"DatPhong_CuaToi_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("ManageBookings");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportHostRevenueToExcel()
+        {
+            try
+            {
+                var userId = _userManager.GetUserId(User)!;
+                var homestays = await _homestayService.GetHostHomestaysAsync(userId);
+                var hostBookings = await _bookingService.GetHostBookingsAsync(userId, "all", 1);
+                
+                var revenueModel = new HostRevenueViewModel
+                {
+                    TotalRevenue = hostBookings.Bookings.Where(b => b.Booking.Status == BookingStatus.CheckedIn || b.Booking.Status == BookingStatus.CheckedOut).Sum(b => b.Booking.FinalAmount),
+                    ThisMonthRevenue = hostBookings.Bookings.Where(b => (b.Booking.Status == BookingStatus.CheckedIn || b.Booking.Status == BookingStatus.CheckedOut) && 
+                        b.Booking.CreatedAt.Month == DateTime.UtcNow.Month && 
+                        b.Booking.CreatedAt.Year == DateTime.UtcNow.Year).Sum(b => b.Booking.FinalAmount),
+                    LastMonthRevenue = hostBookings.Bookings.Where(b => (b.Booking.Status == BookingStatus.CheckedIn || b.Booking.Status == BookingStatus.CheckedOut) && 
+                        b.Booking.CreatedAt.Month == DateTime.UtcNow.AddMonths(-1).Month && 
+                        b.Booking.CreatedAt.Year == DateTime.UtcNow.AddMonths(-1).Year).Sum(b => b.Booking.FinalAmount),
+                    RevenueByHomestay = homestays.ToDictionary(h => h.Name, h => 
+                        hostBookings.Bookings.Where(b => b.Booking.HomestayId == h.Id && (b.Booking.Status == BookingStatus.CheckedIn || b.Booking.Status == BookingStatus.CheckedOut))
+                        .Sum(b => b.Booking.FinalAmount)),
+                    
+                    // Generate monthly revenue data for the last 6 months  
+                    MonthlyRevenue = hostBookings.Bookings
+                        .Where(b => b.Booking.Status == BookingStatus.CheckedIn || b.Booking.Status == BookingStatus.CheckedOut)
+                        .Where(b => b.Booking.CreatedAt >= DateTime.UtcNow.AddMonths(-6))
+                        .GroupBy(b => new { b.Booking.CreatedAt.Year, b.Booking.CreatedAt.Month })
+                        .Select(g => new MonthlyRevenueData
+                        {
+                            Year = g.Key.Year,
+                            Month = g.Key.Month,
+                            Revenue = g.Sum(b => b.Booking.FinalAmount)
+                        })
+                        .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                        .ToList()
+                };
+                
+                var excelData = _excelExportService.ExportHostRevenueToExcel(revenueModel);
+                
+                var fileName = $"BaoCaoDoanhThu_Host_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("Revenue");
+            }
+        }
+
     }
 }
 

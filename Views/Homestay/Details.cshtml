@@ -430,6 +430,13 @@
                                         <i class="fas fa-calendar-check me-2"></i>Đặt phòng
                                     </button>
                                 </div>
+                                
+                                <!-- Message Host Button -->
+                                <div class="d-grid mt-2">
+                                    <button type="button" class="btn btn-outline-primary" onclick="startHostConversation('@Model.Homestay.HostId', @Model.Homestay.Id)">
+                                        <i class="fas fa-comments me-2"></i>Nhắn tin với chủ nhà
+                                    </button>
+                                </div>
                             </form>
                         }
                         else
@@ -439,6 +446,13 @@
                                 <a asp-controller="Account" asp-action="Login" class="btn btn-primary w-100">
                                     <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
                                 </a>
+                                
+                                <!-- Show message button for non-authenticated users too -->
+                                <div class="d-grid mt-2">
+                                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary">
+                                        <i class="fas fa-comments me-2"></i>Nhắn tin với chủ nhà
+                                    </a>
+                                </div>
                             </div>
                         }
 
@@ -1083,6 +1097,35 @@
             font-size: 0.9em;
         }
     </style>
+    
+    <script>
+        // Start conversation with host
+        function startHostConversation(hostId, homestayId) {
+            fetch('@Url.Action("StartHostConversation", "Messaging")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    hostId: hostId,
+                    homestayId: homestayId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to messaging page with conversation selected
+                    window.location.href = '/Messaging?conversationId=' + data.conversationId;
+                } else {
+                    alert('Có lỗi xảy ra: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tạo cuộc trò chuyện');
+            });
+        }
+    </script>
 }
 
 @section Styles {

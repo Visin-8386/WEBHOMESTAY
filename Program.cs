@@ -6,6 +6,7 @@ using WebHS.Services;
 using WebHS.Services.Enhanced;
 using Serilog;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
+using OfficeOpenXml;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -106,6 +107,11 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IBackgroundJobService, BackgroundJobService>();
 builder.Services.AddScoped<ISeoService, SeoService>();
+// Register messaging service
+builder.Services.AddScoped<IMessagingService, MessagingService>();
+
+// Register Excel export service
+builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 
 // Register background service
 builder.Services.AddHostedService<BackgroundJobHostedService>();

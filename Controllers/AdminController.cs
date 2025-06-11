@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using WebHS.Data;
 using WebHS.ViewModels;
 using WebHS.Models;
+using WebHS.Services; // ADDED: Import services
 using WebHSPromotionType = WebHS.Models.PromotionType;
 using WebHSPromotion = WebHS.Models.Promotion;
 using WebHSUser = WebHS.Models.User;
@@ -16,11 +17,15 @@ namespace WebHS.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<WebHSUser> _userManager;
+        private readonly IHomestayService _homestayService; // ADDED
+        private readonly IExcelExportService _excelExportService;
 
-        public AdminController(ApplicationDbContext context, UserManager<WebHSUser> userManager)
+        public AdminController(ApplicationDbContext context, UserManager<WebHSUser> userManager, IHomestayService homestayService, IExcelExportService excelExportService)
         {
             _context = context;
             _userManager = userManager;
+            _homestayService = homestayService; // ADDED
+            _excelExportService = excelExportService;
         }
 
         public async Task<IActionResult> Index()
@@ -31,6 +36,11 @@ namespace WebHS.Controllers
             var totalRevenue = await _context.Bookings
                 .Where(b => b.Status == BookingStatus.CheckedIn || b.Status == BookingStatus.CheckedOut)
                 .SumAsync(b => b.FinalAmount);
+
+            // Thống kê khuyến mãi
+            var totalPromotions = await _context.Promotions.CountAsync();
+            var activePromotions = await _context.Promotions
+                .CountAsync(p => p.IsActive && p.StartDate <= DateTime.UtcNow && p.EndDate >= DateTime.UtcNow);
 
             var pendingHomestays = await _context.Homestays
                 .Where(h => !h.IsApproved)
@@ -68,6 +78,8 @@ namespace WebHS.Controllers
                 TotalHomestays = totalHomestays,
                 TotalBookings = totalBookings,
                 TotalRevenue = totalRevenue,
+                TotalPromotions = totalPromotions,
+                ActivePromotions = activePromotions,
                 PendingHomestays = pendingHomestays,
                 RecentUsers = recentUsers,
                 RecentBookings = recentBookings,
@@ -182,7 +194,18 @@ namespace WebHS.Controllers
                 TotalCount = totalCount
             };
 
+            ViewBag.Status = status; // Add ViewBag for status filter display
             return View(viewModel);
+        }
+
+        public async Task<IActionResult> HomestayDetails(int id)
+        {
+            var homestay = await _homestayService.GetHomestayDetailForAdminAsync(id);
+
+            if (homestay == null)
+                return NotFound();
+
+            return View(homestay);
         }
 
         [HttpPost]
@@ -287,6 +310,7 @@ namespace WebHS.Controllers
                 TotalCount = totalCount
             };
 
+            ViewBag.Status = status; // Add ViewBag for status filter display
             return View(viewModel);
         }
 
@@ -652,6 +676,186 @@ namespace WebHS.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+        public async Task<IActionResult> BookingDetails(int id)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Homestay)
+                    .ThenInclude(h => h.Host)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            return View(booking);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmBooking(int bookingId)
+        {
+            try
+            {
+                var booking = await _context.Bookings
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đặt phòng" });
+                }
+
+                if (booking.Status != BookingStatus.Pending)
+                {
+                    return Json(new { success = false, message = "Đặt phòng này không thể xác nhận" });
+                }
+
+                booking.Status = BookingStatus.Confirmed;
+                booking.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Đã xác nhận đặt phòng thành công" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CancelBooking(int bookingId)
+        {
+            try
+            {
+                var booking = await _context.Bookings
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đặt phòng" });
+                }
+
+                if (booking.Status != BookingStatus.Pending)
+                {
+                    return Json(new { success = false, message = "Đặt phòng này không thể hủy" });
+                }
+
+                booking.Status = BookingStatus.Cancelled;
+                booking.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Đã hủy đặt phòng thành công" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // EXCEL EXPORT ACTIONS
+        [HttpGet]
+        public async Task<IActionResult> ExportUsersToExcel()
+        {
+            try
+            {
+                var users = await _context.Users.ToListAsync();
+                var excelData = _excelExportService.ExportUsersToExcel(users);
+                
+                var fileName = $"QuanLyNguoiDung_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("Users");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportHomestaysToExcel()
+        {
+            try
+            {
+                var homestays = await _context.Homestays
+                    .Include(h => h.Host)
+                    .ToListAsync();
+                var excelData = _excelExportService.ExportHomestaysToExcel(homestays);
+                
+                var fileName = $"QuanLyHomestay_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("Homestays");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportBookingsToExcel()
+        {
+            try
+            {
+                var bookings = await _context.Bookings
+                    .Include(b => b.User)
+                    .Include(b => b.Homestay)
+                    .ToListAsync();
+                var excelData = _excelExportService.ExportBookingsToExcel(bookings);
+                
+                var fileName = $"QuanLyDatPhong_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("Bookings");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportConversationsToExcel()
+        {
+            try
+            {
+                var conversations = await _context.Conversations
+                    .Include(c => c.User1)
+                    .Include(c => c.User2)
+                    .Include(c => c.LastMessageSender)
+                    .Include(c => c.Messages)
+                    .ToListAsync();
+                var excelData = _excelExportService.ExportConversationsToExcel(conversations);
+                
+                var fileName = $"QuanLyHoiThoai_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("Index", "Messaging");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportMessagesToExcel()
+        {
+            try
+            {
+                var messages = await _context.Messages
+                    .Include(m => m.Sender)
+                    .Include(m => m.Conversation)
+                    .ToListAsync();
+                var excelData = _excelExportService.ExportMessagesToExcel(messages);
+                
+                var fileName = $"QuanLyTinNhan_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi xuất Excel: " + ex.Message;
+                return RedirectToAction("Index", "Messaging");
             }
         }
 

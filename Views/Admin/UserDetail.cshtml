@@ -109,9 +109,9 @@
                 <div class="card-header p-2">
                     <ul class="nav nav-pills">
                         <li class="nav-item"><a class="nav-link active" href="#bookings" data-toggle="tab">Đặt phòng</a></li>
-                        @if (homestays != null && homestays.Any())
+                        @if (userRoles?.Contains("Host") == true)
                         {
-                            <li class="nav-item"><a class="nav-link" href="#homestays" data-toggle="tab">Homestay</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#homestays" data-toggle="tab">Homestay (@((homestays?.Count ?? 0)))</a></li>
                         }
                     </ul>
                 </div>
@@ -175,51 +175,62 @@
                             }
                         </div>
 
-                        @if (homestays != null && homestays.Any())
+                        @if (userRoles != null && userRoles.Contains("Host"))
                         {
                             <div class="tab-pane" id="homestays">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Tên</th>
-                                            <th>Địa chỉ</th>
-                                            <th>Giá/đêm</th>
-                                            <th>Trạng thái</th>
-                                            <th>Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var homestay in homestays)
-                                        {
+                                @if (homestays != null && homestays.Any())
+                                {
+                                    <table class="table table-striped">
+                                        <thead>
                                             <tr>
-                                                <td>@homestay.Id</td>
-                                                <td>@homestay.Name</td>
-                                                <td>@homestay.Address, @homestay.City, @homestay.State</td>
-                                                <td>@homestay.PricePerNight.ToString("#,##0") VNĐ</td>
-                                                <td>
-                                                    @if (!homestay.IsApproved)
-                                                    {
-                                                        <span class="badge bg-warning text-dark">Chờ phê duyệt</span>
-                                                    }
-                                                    else if (homestay.IsActive)
-                                                    {
-                                                        <span class="badge bg-success text-white">Hoạt động</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-danger text-white">Không hoạt động</span>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <a href="@Url.Action("Details", "Homestay", new { id = homestay.Id })" class="btn btn-info btn-sm">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                </td>
+                                                <th>ID</th>
+                                                <th>Tên</th>
+                                                <th>Địa chỉ</th>
+                                                <th>Giá/đêm</th>
+                                                <th>Trạng thái</th>
+                                                <th>Thao tác</th>
                                             </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var homestay in homestays)
+                                            {
+                                                <tr>
+                                                    <td>@homestay.Id</td>
+                                                    <td>@homestay.Name</td>
+                                                    <td>@homestay.Address, @homestay.City, @homestay.State</td>
+                                                    <td>@homestay.PricePerNight.ToString("#,##0") VNĐ</td>
+                                                    <td>
+                                                        @if (!homestay.IsApproved)
+                                                        {
+                                                            <span class="badge bg-warning text-dark">Chờ phê duyệt</span>
+                                                        }
+                                                        else if (homestay.IsActive)
+                                                        {
+                                                            <span class="badge bg-success text-white">Hoạt động</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-danger text-white">Không hoạt động</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <a href="@Url.Action("HomestayDetails", "Admin", new { id = homestay.Id })" class="btn btn-info btn-sm">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-home me-2"></i>
+                                        <strong>Chưa có homestay nào.</strong><br>
+                                        Người dùng này có vai trò Host nhưng chưa tạo homestay nào.
+                                    </div>
+                                }
                             </div>
                         }
                     </div>

@@ -23,6 +23,8 @@ namespace WebHS.Data
         public DbSet<BlockedDate> BlockedDates { get; set; }
         public DbSet<HomestayPricing> HomestayPricings { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -137,6 +139,87 @@ namespace WebHS.Data
             modelBuilder.Entity<HomestayPricing>()
                 .Property(hp => hp.PricePerNight)
                 .HasColumnType("decimal(10,2)");
+
+            // Configure Message relationships
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Receiver)
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Homestay)
+                .WithMany()
+                .HasForeignKey(m => m.HomestayId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Booking)
+                .WithMany()
+                .HasForeignKey(m => m.BookingId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure Conversation relationships
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.User1)
+                .WithMany()
+                .HasForeignKey(c => c.User1Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.User2)
+                .WithMany()
+                .HasForeignKey(c => c.User2Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.LastMessageSender)
+                .WithMany()
+                .HasForeignKey(c => c.LastMessageSenderId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.Homestay)
+                .WithMany()
+                .HasForeignKey(c => c.HomestayId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.Booking)
+                .WithMany()
+                .HasForeignKey(c => c.BookingId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure Message-Conversation relationship
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Add indexes for Message
+            modelBuilder.Entity<Message>()
+                .HasIndex(m => new { m.SenderId, m.ReceiverId });
+
+            modelBuilder.Entity<Message>()
+                .HasIndex(m => m.SentAt);
+
+            modelBuilder.Entity<Message>()
+                .HasIndex(m => m.IsRead);
+
+            // Add indexes for Conversation
+            modelBuilder.Entity<Conversation>()
+                .HasIndex(c => new { c.User1Id, c.User2Id })
+                .IsUnique();
+
+            modelBuilder.Entity<Conversation>()
+                .HasIndex(c => c.LastMessageAt);
         }
     }
 }
