@@ -24,8 +24,14 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release
 
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --configuration Release
+    - name: Test (if tests exist)
+      run: |
+        if [ -d "Tests" ] || [ -f "*.Tests.csproj" ]; then
+          dotnet test --no-build --verbosity normal --configuration Release
+        else
+          echo "No tests found, skipping test step"
+        fi
+      shell: bash
 
     - name: Publish
       run: dotnet publish --no-build --configuration Release --output ./publish

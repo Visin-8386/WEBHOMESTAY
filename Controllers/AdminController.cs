@@ -200,7 +200,7 @@ namespace WebHS.Controllers
 
         public async Task<IActionResult> HomestayDetails(int id)
         {
-            var homestay = await _homestayService.GetHomestayDetailForAdminAsync(id);
+            var homestay = await _homestayService.GetHomestayDetailAsync(id);
 
             if (homestay == null)
                 return NotFound();

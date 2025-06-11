@@ -11,6 +11,8 @@ namespace WebHS.ViewModels
         public int TotalHomestays { get; set; }
         public int TotalBookings { get; set; }
         public decimal TotalRevenue { get; set; }
+        public int TotalPromotions { get; set; }
+        public int ActivePromotions { get; set; }
         public int PendingHomestays { get; set; }
         public List<WebHSUser> RecentUsers { get; set; } = new();
         public List<Booking> RecentBookings { get; set; } = new();

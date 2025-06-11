@@ -2917,3 +2917,118 @@ INNER JOIN [Homestays] AS [h] ON [b].[HomestayId] = [h].[Id]
 2025-06-12 02:04:49.253 +07:00 [INF] Executed endpoint 'WebHS.Controllers.AdminController.ExportBookingsToExcel (WebHS)'
 2025-06-12 02:04:49.253 +07:00 [INF] The response could not be cached for this request.
 2025-06-12 02:04:49.254 +07:00 [INF] Request finished HTTP/1.1 GET http://localhost:5000/Admin/ExportBookingsToExcel - 200 5672 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet 133.5097ms
+2025-06-12 02:42:57.878 +07:00 [INF] Starting database basic initialization...
+2025-06-12 02:42:59.725 +07:00 [INF] Executed DbCommand (23ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-06-12 02:42:59.763 +07:00 [INF] Executed DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-06-12 02:42:59.769 +07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-06-12 02:42:59.772 +07:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-06-12 02:42:59.799 +07:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-06-12 02:42:59.814 +07:00 [INF] No migrations were applied. The database is already up to date.
+2025-06-12 02:42:59.828 +07:00 [INF] User profile is available. Using 'C:\Users\84788\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-06-12 02:43:00.076 +07:00 [INF] Executed DbCommand (55ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2025-06-12 02:43:00.116 +07:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2025-06-12 02:43:00.120 +07:00 [INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2025-06-12 02:43:00.144 +07:00 [INF] Executed DbCommand (12ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[Address], [a].[Bio], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[IsHost], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfilePicture], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2025-06-12 02:43:00.206 +07:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[Address], [a].[Bio], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[IsHost], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfilePicture], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2025-06-12 02:43:00.211 +07:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[Address], [a].[Bio], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[IsHost], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfilePicture], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2025-06-12 02:43:00.214 +07:00 [INF] Executed DbCommand (0ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[Address], [a].[Bio], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[IsHost], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfilePicture], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2025-06-12 02:43:00.217 +07:00 [INF] Executed DbCommand (0ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[Address], [a].[Bio], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[IsHost], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfilePicture], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2025-06-12 02:43:00.221 +07:00 [INF] Executed DbCommand (0ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[Address], [a].[Bio], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[IsHost], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfilePicture], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2025-06-12 02:43:00.224 +07:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[Address], [a].[Bio], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[IsHost], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfilePicture], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2025-06-12 02:43:00.226 +07:00 [INF] Starting sample data seeding...
+2025-06-12 02:43:00.229 +07:00 [INF] Starting data seeding...
+2025-06-12 02:43:00.242 +07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Amenities] AS [a]) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2025-06-12 02:43:00.246 +07:00 [INF] Amenities already exist, skipping seed
+2025-06-12 02:43:00.253 +07:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Homestays] AS [h]) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2025-06-12 02:43:00.255 +07:00 [INF] Homestays already exist, skipping seed
+2025-06-12 02:43:00.262 +07:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Promotions] AS [p]) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2025-06-12 02:43:00.264 +07:00 [INF] Promotions already exist, skipping seed
+2025-06-12 02:43:00.271 +07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Bookings] AS [b]) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2025-06-12 02:43:00.272 +07:00 [INF] Bookings already exist, skipping seed
+2025-06-12 02:43:00.289 +07:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [b].[Id], [b].[CheckInDate], [b].[CheckOutDate], [b].[CreatedAt], [b].[DiscountAmount], [b].[FinalAmount], [b].[HomestayId], [b].[Notes], [b].[NumberOfGuests], [b].[PromotionId], [b].[ReviewComment], [b].[ReviewCreatedAt], [b].[ReviewIsActive], [b].[ReviewRating], [b].[ReviewUpdatedAt], [b].[Status], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+FROM [Bookings] AS [b]
+WHERE [b].[Status] = 4 AND [b].[ReviewRating] IS NULL
+2025-06-12 02:43:00.297 +07:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Payments] AS [p]) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2025-06-12 02:43:00.299 +07:00 [INF] Payments already exist, skipping seed
+2025-06-12 02:43:00.299 +07:00 [INF] Data seeding completed successfully
+2025-06-12 02:43:00.300 +07:00 [INF] Sample data seeding completed successfully.
+2025-06-12 02:43:00.301 +07:00 [INF] Database initialization completed successfully.
+2025-06-12 02:43:00.344 +07:00 [INF] Background Job Service started
+2025-06-12 02:43:00.382 +07:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [p].[Id], [p].[Amount], [p].[BookingId], [p].[CompletedAt], [p].[CreatedAt], [p].[Notes], [p].[PaymentMethod], [p].[Status], [p].[TransactionId], [p].[UpdatedAt], [p].[UserId]
+FROM [Payments] AS [p]
+WHERE [p].[Status] = 0 AND [p].[CreatedAt] < DATEADD(hour, CAST(-24.0E0 AS int), GETUTCDATE())
+2025-06-12 02:43:00.391 +07:00 [INF] Processed 0 expired payments
+2025-06-12 02:43:00.423 +07:00 [INF] Now listening on: http://localhost:5000
+2025-06-12 02:43:00.424 +07:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-06-12 02:43:00.425 +07:00 [INF] Hosting environment: Development
+2025-06-12 02:43:00.426 +07:00 [INF] Content root path: d:\WebHS
+2025-06-12 02:44:15.242 +07:00 [INF] Application is shutting down...
