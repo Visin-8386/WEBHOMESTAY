@@ -54,9 +54,22 @@ Thumbs.db
 wwwroot/uploads/
 wwwroot/images/uploaded/
 
-# Secrets
-appsettings.*.json
-!appsettings.json
+# Secrets and sensitive files
+appsettings.Production.json
+appsettings.Staging.json
+*.pfx
+*.p12
+*.cer
+*.crt
+*.key
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# SSL Certificates
+ssl/
+certificates/
 
 # NuGet packages
 *.nupkg
